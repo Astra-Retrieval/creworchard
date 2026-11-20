@@ -21,7 +21,9 @@ export function Footer() {
           </a>
         </p>
         <p className="footer-legal">
-          © {year} {PARENT_COMPANY}. All rights reserved.
+          © {year} {PARENT_COMPANY}. All rights reserved. The sky behind this page is real: Orion
+          and the Winter Hexagon as they appear on a January evening, drawn from the Hipparcos
+          star catalogue via d3-celestial (BSD-3-Clause, © Olaf Frohn).
         </p>
       </div>
     </footer>

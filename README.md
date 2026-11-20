@@ -88,6 +88,22 @@ The product uses tax code `txcd_10103001` (SaaS, business use) and every price i
 
 Early-bird Checkout creates a subscription with `trial_end` set to 2027-01-01 00:00 UTC and requires a card. Stripe bills the first month automatically when the trial ends. If someone signs up within 48 hours of launch (Stripe's minimum trial length), the trial is skipped and billing starts immediately.
 
+## Night sky background
+
+The site background (`src/components/Starfield.tsx`) is a real star field: the Winter Hexagon around Orion (Betelgeuse, Rigel, the belt and sword, Sirius, Procyon, Castor and Pollux, Aldebaran, and the Pleiades), framed as it looks facing south on a January evening. `public/sky/winter-hexagon.svg` holds about 2,450 stars down to magnitude 7.2, each sized and tinted by its real brightness and B–V colour. The brightest ones twinkle. Above it, the whole sky turns very slowly about a point far above the screen, and three faint shooting stars pass on separate timers. It's all CSS, and every animation stops for visitors who ask for reduced motion.
+
+To regenerate it (for example, to frame a different part of the sky), edit the constants at the top of `scripts/build-sky.py`, then:
+
+```bash
+npm pack d3-celestial@0.7.35 && tar -xzf d3-celestial-0.7.35.tgz
+```
+
+```bash
+python3 scripts/build-sky.py package/data/stars.8.json public/sky/winter-hexagon.svg
+```
+
+Star data: [d3-celestial](https://github.com/ofrohn/d3-celestial), built from the Hipparcos catalogue. BSD-3-Clause, © Olaf Frohn. The attribution is shown in the site footer.
+
 ## Data model
 
 - `waitlist`: name, email (unique, case-insensitive), organization, use case, expected seats, notes, and an `invite_code` column to fill at launch. Server-only (RLS on, no policies).

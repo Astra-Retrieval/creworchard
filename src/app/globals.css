@@ -51,7 +51,7 @@ body {
 }
 
 /* ── Night sky (src/components/Starfield.tsx) ─────────────────
-   Plain black with natural starlight and slow, quiet motion. */
+   A real star field (Orion and the Winter Hexagon) with slow, quiet motion. */
 
 .starfield {
   position: fixed;
@@ -61,54 +61,48 @@ body {
   pointer-events: none;
   background: #000;
 }
-.star-layer {
+/* Slightly larger than the screen so the corners stay covered while it turns.
+   It pivots on a point far above the screen, so a small angle reads as the
+   sky wheeling slowly around the pole rather than spinning in place. */
+.sky-rotor {
   position: absolute;
-  top: 0;
-  left: 50%;
-  width: 2400px;
-  margin-left: -1200px; /* keep the tile centred on any screen width */
-  animation: star-drift linear infinite;
+  inset: -6%;
+  transform-origin: 50% -220%;
+  animation: sky-turn 240s ease-in-out infinite alternate;
   will-change: transform;
 }
-.star-tile { position: absolute; left: 0; border-radius: 50%; background: transparent; }
-@keyframes star-drift {
-  from { transform: translate3d(0, 0, 0); }
-  to { transform: translate3d(0, -1400px, 0); }
+.sky-image {
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  object-fit: cover;
+}
+@keyframes sky-turn {
+  from { transform: rotate(-1.2deg); }
+  to { transform: rotate(1.2deg); }
 }
 
-.twinkle {
-  position: absolute;
-  border-radius: 50%;
-  background: #eef1f8;
-  box-shadow: 0 0 4px rgba(238, 241, 248, 0.6);
-  opacity: 0.15;
-  animation: twinkle ease-in-out infinite;
-}
-@keyframes twinkle {
-  0%, 100% { opacity: 0.15; transform: scale(0.8); }
-  50% { opacity: 0.95; transform: scale(1.15); }
-}
-
+/* Shooting stars. Each sets --angle and --distance inline. Rotated past 90deg,
+   the element's +x axis points down and to the left, so the bright head (the
+   right end of the gradient) leads the fading tail. Each is visible for about
+   6% of its own cycle. */
 .shooting-star {
   position: absolute;
-  top: 14%;
-  left: 72%;
   width: 140px;
   height: 1px;
-  /* Tail fades out behind a bright head at the leading (right) end. */
   background: linear-gradient(90deg, rgba(238, 241, 248, 0), rgba(238, 241, 248, 0.85));
   opacity: 0;
-  transform: rotate(155deg);
+  transform: rotate(var(--angle)) translateX(0);
   transform-origin: left center;
-  animation: shooting-star 21s ease-out 6s infinite;
+  animation-name: shooting-star;
+  animation-timing-function: ease-out;
+  animation-iteration-count: infinite;
 }
-/* Rotated 155deg, the element's +x axis points down and to the left, so the
-   streak falls that way and is visible for about one second of each cycle. */
 @keyframes shooting-star {
-  0% { opacity: 0; transform: rotate(155deg) translateX(0); }
+  0% { opacity: 0; transform: rotate(var(--angle)) translateX(0); }
   1% { opacity: 1; }
-  6% { opacity: 0; transform: rotate(155deg) translateX(520px); }
-  100% { opacity: 0; transform: rotate(155deg) translateX(520px); }
+  6% { opacity: 0; transform: rotate(var(--angle)) translateX(var(--distance)); }
+  100% { opacity: 0; transform: rotate(var(--angle)) translateX(var(--distance)); }
 }
 
 main, header, footer { position: relative; z-index: 1; }
