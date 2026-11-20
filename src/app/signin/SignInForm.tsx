@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useActionState } from "react";
 import { signIn } from "./actions";
 
@@ -14,6 +15,9 @@ export function SignInForm() {
       <div className="field">
         <label htmlFor="s-pass">Password</label>
         <input id="s-pass" name="password" type="password" autoComplete="current-password" required />
+        <Link href="/forgot-password" className="hint" style={{ color: "var(--mint)", justifySelf: "end" }}>
+          Forgot password?
+        </Link>
       </div>
       {state.status === "error" && (
         <div className="notice notice-error" role="alert">{state.message}</div>

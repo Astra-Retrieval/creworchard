@@ -22,6 +22,9 @@ export async function createEarlyBirdCheckout(opts: {
   if (!stripe || !price) throw new Error("Stripe is not configured");
 
   const nowUnix = Math.floor(Date.now() / 1000);
+  // Stripe Tax must be activated (head office address set) before this is turned on,
+  // otherwise Checkout Session creation fails. See README "Sales tax".
+  const collectTax = process.env.STRIPE_AUTOMATIC_TAX === "true";
   const deferBilling = LAUNCH_UNIX - nowUnix > MIN_TRIAL_SECONDS;
 
   const session = await stripe.checkout.sessions.create({
@@ -31,6 +34,13 @@ export async function createEarlyBirdCheckout(opts: {
     line_items: [{ price, quantity: opts.seats }],
     payment_method_collection: "always",
     allow_promotion_codes: false,
+    ...(collectTax
+      ? {
+          automatic_tax: { enabled: true },
+          billing_address_collection: "auto" as const,
+          tax_id_collection: { enabled: true },
+        }
+      : {}),
     metadata: { user_id: opts.userId, plan: EARLY_BIRD.id },
     subscription_data: {
       metadata: { user_id: opts.userId, plan: EARLY_BIRD.id },

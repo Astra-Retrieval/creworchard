@@ -10,7 +10,7 @@ export const metadata: Metadata = { title: "Sign in" };
 const NOTICES: Record<string, string> = {
   confirm: "Check your inbox to confirm your email, then sign in to see your seat.",
   closed: "Your account has been closed. Safe travels.",
-  auth: "That sign-in link was invalid or expired. Please sign in again.",
+  auth: "That link was invalid or expired. Please sign in again, or request a new reset link.",
 };
 
 export default async function SignInPage({ searchParams }: { searchParams: Promise<{ notice?: string }> }) {
