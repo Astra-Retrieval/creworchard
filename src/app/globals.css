@@ -648,3 +648,212 @@ td.num { font-family: var(--font-data); font-variant-numeric: tabular-nums; }
   .nav-cta { padding: 8px 14px; font-size: 13px; }
   .segmented button { font-size: 11px; letter-spacing: 0.06em; padding: 12px 6px; }
 }
+
+/* ── Product: organization dashboard ──────────────────────── */
+
+.card-link { display: block; text-decoration: none; transition: border-color 0.15s ease, transform 0.15s ease; }
+.card-link:hover { border-color: var(--mint); transform: translateY(-2px); }
+.card-link p:last-child { color: var(--mint); font-size: 14px; margin-top: 14px; }
+.inline-form { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 12px; align-items: end; }
+@media (max-width: 520px) { .inline-form { grid-template-columns: 1fr; } }
+
+/* ── Product: project workspace (src/components/workspace) ────
+   Full-screen: tabs down the left, the page in the middle, and
+   a shortcut row pinned bottom right. */
+
+.ws {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  display: grid;
+  grid-template-columns: 232px minmax(0, 1fr);
+  background: var(--void);
+}
+.ws-rail {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  padding: 20px 14px;
+  background: var(--card);
+  border-right: 2px solid var(--hull);
+  overflow-y: auto;
+  min-width: 0;
+}
+.ws-brand { display: inline-flex; text-decoration: none; padding: 0 8px; }
+.ws-project { display: grid; gap: 4px; padding: 0 8px 18px; border-bottom: 1px solid var(--hull); min-width: 0; }
+.ws-project-org { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--dust); overflow-wrap: anywhere; }
+.ws-project-name { font-weight: 600; font-size: 17px; line-height: 1.3; overflow-wrap: anywhere; }
+.ws-tabs { display: grid; gap: 4px; }
+.ws-tab {
+  display: block;
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  border-left: 2px solid transparent;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  text-decoration: none;
+  color: var(--dust);
+  transition: color 0.15s ease, background 0.15s ease;
+}
+.ws-tab:hover { color: var(--starlight); background: color-mix(in srgb, var(--hull) 45%, transparent); }
+.ws-tab[aria-current="page"] { color: var(--starlight); background: var(--hull); border-left-color: var(--mint); }
+
+.ws-main { position: relative; min-width: 0; min-height: 0; overflow: auto; }
+
+/* Canvas: a dotted grid that scrolls in both directions. */
+.ws-canvas { position: absolute; inset: 0; }
+.ws-canvas-scroll {
+  position: absolute;
+  inset: 0;
+  overflow: auto;
+  background-color: var(--void);
+  background-image: radial-gradient(circle, color-mix(in srgb, var(--path) 70%, transparent) 1px, transparent 1.5px);
+  background-size: 28px 28px;
+  background-attachment: local;
+}
+.ws-canvas-surface { position: relative; width: 100%; height: 100%; }
+.ws-edges { position: absolute; left: 0; top: 0; pointer-events: none; overflow: visible; }
+.ws-edges line { stroke: var(--path); stroke-width: 2; stroke-dasharray: 7 6; stroke-linecap: round; }
+.ws-edge-label {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  padding: 3px 10px;
+  border: 1.5px solid var(--path);
+  border-radius: 999px;
+  background: var(--void);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--orbit-blue);
+  white-space: nowrap;
+  max-width: 108px; /* fits the gap between neighbouring boxes; the full name is in the tooltip */
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.ws-nodes { list-style: none; margin: 0; padding: 0; }
+.ws-node {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 6px;
+  padding: 0 18px;
+  background: var(--card);
+  border: 2px solid var(--hull);
+  border-top-color: var(--mint);
+  border-radius: var(--radius-sm);
+}
+.ws-node-kind { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--mint); }
+.ws-node-name { font-weight: 600; font-size: 16px; line-height: 1.25; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ws-canvas-empty {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  margin: 0;
+  width: min(80%, 460px);
+  text-align: center;
+  color: var(--dust);
+  font-size: 15px;
+  pointer-events: none;
+}
+.ws-canvas-empty strong { color: var(--starlight); font-weight: 600; }
+
+/* The "New" button, top right and bottom left of the canvas. */
+.ws-corner { position: absolute; z-index: 2; }
+.ws-corner-top-right { top: 18px; right: 18px; }
+.ws-corner-bottom-left { bottom: 18px; left: 18px; }
+.ws-create { padding: 11px 20px; font-size: 14px; gap: 8px; box-shadow: 0 6px 24px rgb(0 0 0 / 0.45); }
+
+/* Shortcut row, bottom right of every project page. */
+.ws-dock {
+  position: absolute;
+  right: 18px;
+  bottom: 18px;
+  z-index: 3;
+  display: flex;
+  gap: 4px;
+  padding: 5px;
+  background: var(--card);
+  border: 2px solid var(--hull);
+  border-radius: 999px;
+  box-shadow: 0 6px 24px rgb(0 0 0 / 0.45);
+}
+.ws-dock-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--dust);
+  font-family: var(--font-body);
+  font-weight: 500;
+  font-size: 13px;
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: color 0.15s ease, background 0.15s ease;
+}
+.ws-dock-btn:hover { color: var(--starlight); background: var(--hull); }
+
+/* Section pages (documents, requirements, constraints). */
+.ws-section { padding: clamp(28px, 5vw, 56px) clamp(20px, 5vw, 56px) 110px; max-width: 900px; }
+.ws-section h1 { font-size: clamp(26px, 3.4vw, 40px); }
+.ws-section-empty {
+  margin-top: 8px;
+  padding: 44px 24px;
+  text-align: center;
+  color: var(--dust);
+  border: 2px dashed var(--hull);
+  border-radius: var(--radius);
+}
+
+/* Dialogs. */
+.ws-modal {
+  width: min(92vw, 480px);
+  max-height: 88vh;
+  padding: 0;
+  color: var(--starlight);
+  background: var(--card);
+  border: 2px solid var(--hull);
+  border-radius: var(--radius);
+  box-shadow: 0 24px 80px rgb(0 0 0 / 0.6);
+}
+.ws-modal::backdrop { background: rgb(7 10 20 / 0.72); }
+.ws-modal-body { padding: 24px; }
+.ws-modal-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; margin-bottom: 20px; }
+.ws-icon-btn {
+  display: inline-grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  flex-shrink: 0;
+  border: 2px solid var(--hull);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--dust);
+  cursor: pointer;
+}
+.ws-icon-btn:hover { color: var(--starlight); border-color: var(--dust); }
+
+/* Narrow screens: the tabs move to a strip along the top, and the
+   shortcut row shows icons only. The bottom-left "New" button sits above it. */
+@media (max-width: 760px) {
+  .ws { grid-template-columns: 1fr; grid-template-rows: auto minmax(0, 1fr); }
+  .ws-rail { flex-direction: row; align-items: center; gap: 12px; padding: 10px 12px; border-right: 0; border-bottom: 2px solid var(--hull); overflow-x: auto; overflow-y: hidden; }
+  .ws-brand .logo-word, .ws-project-org { display: none; }
+  .ws-brand { padding: 0; }
+  .ws-project { padding: 0; border-bottom: 0; flex-shrink: 0; max-width: 40vw; }
+  .ws-project-name { font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .ws-tabs { display: flex; gap: 4px; }
+  .ws-tab { padding: 8px 10px; border-left: 0; font-size: 11px; letter-spacing: 0.1em; white-space: nowrap; }
+  .ws-dock-btn { padding: 10px; }
+  .ws-dock-btn span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0, 0, 0, 0); }
+  .ws-corner-bottom-left { bottom: 18px; left: 12px; }
+  .ws-dock { right: 12px; }
+}

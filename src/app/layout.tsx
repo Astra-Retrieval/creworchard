@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { IBM_Plex_Mono, Inter, Michroma, Montserrat } from "next/font/google";
 import { Nav } from "@/components/Nav";
 import { Footer } from "@/components/Footer";
+import { SiteChrome } from "@/components/SiteChrome";
 import { getSession } from "@/lib/auth";
 import { decideProductAccess, getProductAccessMode } from "@/lib/product-access";
 import { ONE_LINER, PRODUCT_NAME } from "@/lib/site";
@@ -30,9 +31,13 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   return (
     <html lang="en" className={`${michroma.variable} ${montserrat.variable} ${inter.variable} ${plexMono.variable}`}>
       <body>
-        <Nav signedIn={Boolean(session)} isAdmin={session?.profile?.role === "admin"} showApp={showApp} />
+        <SiteChrome>
+          <Nav signedIn={Boolean(session)} isAdmin={session?.profile?.role === "admin"} showApp={showApp} />
+        </SiteChrome>
         <main>{children}</main>
-        <Footer />
+        <SiteChrome>
+          <Footer />
+        </SiteChrome>
       </body>
     </html>
   );

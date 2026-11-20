@@ -15,6 +15,9 @@ Built with Next.js 16 (App Router), Supabase (auth and database), and Stripe (su
 | `/signin` | Email and password sign-in for early-bird members |
 | `/account` | Member dashboard: launch countdown, crew pass, telemetry, sign out, close account |
 | `/admin` | Admins only: every early-bird member and waitlist entry, stats, and CSV export |
+| `/app` | The product. Sends you to your organization (or asks you to create one) |
+| `/app/org/[orgId]` | Organization dashboard: projects, members, and permissions |
+| `/app/org/[orgId]/project/[projectId]` | A project: the canvas, plus Documents, Requirements, and Constraints tabs |
 
 ## Editing copy
 
@@ -102,7 +105,19 @@ The product lives under `/app`, behind one access rule (`src/lib/product-access-
 
 The **Product access** card on `/admin` sets the mode: **Automatic** (the default) opens at launch, 2027-01-01 00:00 UTC. **Open now** and **Keep closed** are manual overrides. The mode is stored in the `app_settings` table, and the tester flag is `profiles.is_tester`. Run `npm test` to check the rule against every case.
 
+## Organizations and projects
+
+Signing in takes anyone with product access to `/app`, which opens their organization dashboard. Someone with no organization creates one and becomes its first admin.
+
+- **Permissions** (`src/lib/org-rules.ts`): organization admins can do everything. Members can do only what an admin has granted them on the dashboard. Today there is one grantable permission, **Create projects**; add more to `ORG_PERMISSIONS`. Managing members is admin-only, and an organization always keeps one admin.
+- **Project workspace** (`src/components/workspace/`): a full-screen view with tabs down the left (the list is `PROJECT_SECTIONS`), a canvas as the main page, a **New** button top right and bottom left that creates a sub-system or an integration between two sub-systems, and a bottom-right row for user settings, feature requests, questions, and the organization dashboard.
+- **Feature requests and questions** are saved to `contact_messages` and show up under Messages on `/admin`.
+- **Security**: these tables are server-only (RLS on, no policies). Every page and server action goes through the guards in `src/lib/orgs.ts`, which answer "page not found" to anyone outside the organization.
+
+Apply `supabase/migrations/20261120230000_organizations_projects.sql` before deploying this code.
+
 ## Data model
 
 - `waitlist`: name, email (unique, case-insensitive), organization, use case, expected seats, notes, and an `invite_code` column to fill at launch. Server-only (RLS on, no policies).
 - `profiles`: one row per auth user, created by a trigger. Holds role (`member` or `admin`), seats, a sequential member number, and Stripe IDs and status mirrored by the webhook. Members can read only their own row; all writes go through the server.
+- `organizations`, `organization_members` (role and granted permissions), `projects`, `subsystems` (with canvas position), and `integrations` (a link between two sub-systems of the same project, one per pair). All server-only.
