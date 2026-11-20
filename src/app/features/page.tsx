@@ -1,15 +1,16 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { AsteroidBullet } from "@/components/AsteroidBullet";
-import { OrbitArt } from "@/components/OrbitArt";
+import { StackArt } from "@/components/StackArt";
 import { FEATURES, MILESTONES, type Category } from "@/lib/site";
 
 export const metadata: Metadata = { title: "Features" };
 
 const CATEGORY_PILL: Record<Category, { cls: string; label: string }> = {
-  software: { cls: "pill-violet", label: "Software" },
-  network: { cls: "pill-blue", label: "Network" },
-  retrieval: { cls: "pill-mint", label: "Operations" },
+  core: { cls: "pill-mint", label: "Core" },
+  integrations: { cls: "pill-blue", label: "Integrations" },
+  team: { cls: "pill-violet", label: "Crew" },
+  ai: { cls: "pill-violet", label: "Assistant" },
 };
 
 const STATE_PILL = {
@@ -27,13 +28,12 @@ export default function FeaturesPage() {
             <p className="eyebrow">01 · Feature intentions</p>
             <h1>What we are building</h1>
             <p className="lede">
-              Crew Orchard is grown from the same stack Astra Retrieval is writing to fly its own
-              spacecraft: <strong>autonomy that handles the routine</strong> and a crew that
-              handles the rest.
+              Crew Orchard is the <strong>backend for engineers</strong>: the systems behind your
+              work, kept running underneath, so your crew can stay focused on what you are building.
             </p>
           </div>
           <div className="card" style={{ padding: 12 }}>
-            <OrbitArt />
+            <StackArt />
           </div>
         </div>
       </section>
@@ -58,7 +58,7 @@ export default function FeaturesPage() {
       <section className="section">
         <div className="container">
           <p className="eyebrow">02 · Milestones</p>
-          <h2>Flight plan</h2>
+          <h2>Roadmap</h2>
           <p className="lede">Where we are, and where we are headed next.</p>
           <div className="card timeline" style={{ marginTop: 32 }}>
             {MILESTONES.map((m) => (

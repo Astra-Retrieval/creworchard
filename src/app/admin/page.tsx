@@ -40,7 +40,7 @@ export default async function AdminPage() {
     <>
       <section className="section-tight">
         <div className="container">
-          <p className="eyebrow">Mission control · Admin</p>
+          <p className="eyebrow">Admin · Sign-ups</p>
           <h1>Sign-ups</h1>
           <div className="grid grid-4" style={{ marginTop: 32, gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 180px), 1fr))" }}>
             {stats.map((s) => (

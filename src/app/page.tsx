@@ -5,7 +5,7 @@ export default function HomePage() {
   return (
     <section className="hero">
       <div className="container hero-content">
-        <p className="eyebrow">Mission status · Pre-launch</p>
+        <p className="eyebrow">Status · Pre-launch</p>
         <h1>{HEADLINE}</h1>
         <p className="lede">
           <strong>Crew Orchard</strong> is {ONE_LINER.charAt(0).toLowerCase() + ONE_LINER.slice(1)} {SUB_LINE}

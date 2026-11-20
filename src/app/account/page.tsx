@@ -4,7 +4,7 @@ import { CloseAccount } from "./CloseAccount";
 import { resumeCheckout } from "./actions";
 import { signOut } from "@/app/signin/actions";
 import { Countdown } from "@/components/Countdown";
-import { OrbitArt } from "@/components/OrbitArt";
+import { StackArt } from "@/components/StackArt";
 import { LogoMark } from "@/components/Logo";
 import { getSession } from "@/lib/auth";
 import { EARLY_BIRD, LAUNCH_DATE_ISO, LAUNCH_LABEL } from "@/lib/site";
@@ -46,11 +46,11 @@ export default async function AccountPage({ searchParams }: { searchParams: Prom
           )}
 
           <div>
-            <p className="eyebrow">Mission status · Pre-launch · All systems nominal</p>
+            <p className="eyebrow">Status · Pre-launch · All systems nominal</p>
             <h1>Welcome aboard, {firstName}</h1>
             <p className="lede">
               Crew Orchard launches on <strong>{LAUNCH_LABEL}</strong>. Your early-bird price is
-              locked in. We&apos;ll email you when the console opens.
+              locked in. We&apos;ll email you the moment it opens.
             </p>
           </div>
 
@@ -107,15 +107,15 @@ export default async function AccountPage({ searchParams }: { searchParams: Prom
       <section className="section-tight">
         <div className="container grid grid-2" style={{ alignItems: "center" }}>
           <div className="card" style={{ padding: 12 }}>
-            <OrbitArt label="You are here" />
+            <StackArt label="Your seat" />
           </div>
           <div className="stack">
-            <p className="eyebrow" style={{ margin: 0 }}>Pre-flight checklist</p>
+            <p className="eyebrow" style={{ margin: 0 }}>Launch checklist</p>
             <ul className="telemetry" style={{ listStyle: "none", padding: 0, margin: 0 }}>
               <li className="telemetry-row"><span>ACCOUNT CREATED</span><span className="ok">GO</span></li>
               <li className="telemetry-row"><span>EARLY-BIRD PRICE LOCKED</span><span className={reserved ? "ok" : undefined}>{reserved ? "GO" : "HOLD"}</span></li>
               <li className="telemetry-row"><span>PRIVATE BETA INVITE</span><span>DEC 2026</span></li>
-              <li className="telemetry-row"><span>CONSOLE OPENS</span><span>{LAUNCH_LABEL.toUpperCase()}</span></li>
+              <li className="telemetry-row"><span>CREW ORCHARD OPENS</span><span>{LAUNCH_LABEL.toUpperCase()}</span></li>
             </ul>
             <div className="row" style={{ marginTop: 8 }}>
               <form action={signOut}>

@@ -19,7 +19,6 @@ export function Footer() {
           <a href={PARENT_URL} target="_blank" rel="noopener noreferrer">
             {PARENT_COMPANY}
           </a>
-          <span style={{ color: "var(--mint)" }}> · The logistics layer for deep space.</span>
         </p>
         <p className="footer-legal">
           © {year} {PARENT_COMPANY}. All rights reserved.

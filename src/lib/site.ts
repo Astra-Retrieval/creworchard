@@ -9,11 +9,11 @@ export const PARENT_URL = "https://astraretrieval.com";
 
 /** One-liner shown on the home page hero. */
 export const ONE_LINER =
-  "Mission operations software that lets a small crew run a fleet of deep-space spacecraft.";
+  "The backend system for engineers: it runs the systems behind your work so you can focus on whatever you are building.";
 
 /** Supporting sentence under the one-liner. */
 export const SUB_LINE =
-  "Built by the team behind Astra Retrieval's autonomous flight stack and private deep space network.";
+  "Bring your project, your tools, and your crew. Crew Orchard keeps it all running underneath.";
 
 /** Launch: product goes live and early-bird billing starts. 00:00 UTC. */
 export const LAUNCH_DATE_ISO = "2027-01-01T00:00:00Z";
@@ -75,7 +75,7 @@ export const TIERS: Tier[] = [
     name: "Academic & Hobby",
     price: 25,
     tag: ".edu or hobbyist",
-    blurb: "For students, researchers with a .edu address, and hobbyist missions.",
+    blurb: "For students, researchers with a .edu address, and hobbyist projects.",
     points: [
       "$25 per seat, per month",
       "Verified .edu email, or a hobbyist-use agreement",
@@ -91,12 +91,12 @@ export const TIERS: Tier[] = [
     name: "Enterprise",
     price: 40,
     tag: "Commercial",
-    blurb: "For commercial operators, primes, and government programs.",
+    blurb: "For companies and teams building commercially.",
     points: [
       "$40 per seat, per month",
       "Commercial use",
       "Priority support",
-      "Deep space network add-ons as they come online",
+      "Advanced admin and security controls",
     ],
     highlighted: false,
     cta: { label: "Available at launch", href: "/waitlist" },
@@ -107,9 +107,9 @@ export const TIERS: Tier[] = [
 export const EARLY_BIRD = TIERS[0];
 
 /** Short display headline for the home hero (Michroma, caps). */
-export const HEADLINE = "Run the fleet. Keep the crew small.";
+export const HEADLINE = "The backend for whatever you build.";
 
-export type Category = "software" | "network" | "retrieval";
+export type Category = "core" | "integrations" | "team" | "ai";
 
 export interface Feature {
   category: Category;
@@ -120,34 +120,34 @@ export interface Feature {
 /** Feature intentions. These are plans, not promises (see the disclaimer on /features). */
 export const FEATURES: Feature[] = [
   {
-    category: "software",
-    title: "One console for every spacecraft",
-    body: "Live state, health, and upcoming events for your whole fleet on a single screen, so one operator can watch what used to take a room.",
+    category: "core",
+    title: "One home for your project",
+    body: "Data, files, notes, and decisions live in one place instead of scattered across drives, chats, and spreadsheets.",
   },
   {
-    category: "software",
-    title: "Autonomy handoff",
-    body: "Onboard autonomy flies the routine. Crew Orchard brings the crew in at the decisions that matter and records why each call was made.",
+    category: "integrations",
+    title: "Works with your tools",
+    body: "Connect the tools you already use and reach everything through an API, so Crew Orchard fits around your workflow.",
   },
   {
-    category: "software",
-    title: "Anomaly triage",
-    body: "Telemetry is watched continuously and odd behavior is ranked by risk, with the context an operator needs to act in minutes, not hours.",
+    category: "team",
+    title: "Built for your crew",
+    body: "Shared workspaces with roles and permissions, priced per seat, so everyone on the project works from the same source.",
   },
   {
-    category: "network",
-    title: "Deep space network passes",
-    body: "Book contact windows on the Astra Retrieval private deep space network straight from your mission timeline.",
+    category: "core",
+    title: "Full history",
+    body: "Every change is versioned, so you can see what changed, who changed it, and roll back when you need to.",
   },
   {
-    category: "software",
-    title: "Shared mission timelines",
-    body: "Plans, procedures, and handovers live in one timeline the whole crew edits together, with roles and per-seat permissions.",
+    category: "integrations",
+    title: "Automations",
+    body: "Hand off the repetitive work. Set rules once and let routine tasks run in the background.",
   },
   {
-    category: "retrieval",
-    title: "Replay and audit trail",
-    body: "Every command, decision, and pass is kept, so you can replay a shift, brief a customer, or answer a reviewer with evidence.",
+    category: "ai",
+    title: "Ask your backend",
+    body: "An assistant that answers questions from your own project data, so finding the right number or file takes seconds.",
   },
 ];
 
@@ -170,31 +170,31 @@ export const MILESTONES: Milestone[] = [
   {
     when: "Dec 2026",
     title: "Private beta with early-bird crews",
-    body: "Early-bird members get first access to the fleet console and help shape what ships.",
+    body: "Early-bird members get first access and help shape what ships.",
     state: "next",
   },
   {
     when: "Jan 1, 2027",
     title: "Crew Orchard 1.0 launches",
-    body: "Fleet console, shared timelines, and anomaly triage go live. Early-bird billing begins and waitlist codes go out.",
+    body: "Project workspaces, crew sharing, and full history go live. Early-bird billing begins and waitlist codes go out.",
     state: "planned",
   },
   {
     when: "Q2 2027",
-    title: "Deep space network scheduling",
-    body: "Book and track passes on the Astra Retrieval private deep space network from inside Crew Orchard.",
+    title: "Integrations and public API",
+    body: "Connect the tools you already use and build on Crew Orchard directly.",
     state: "planned",
   },
   {
     when: "Q3 2027",
-    title: "Autonomy handoff",
-    body: "Connect onboard autonomy so routine operations run themselves and the crew handles the exceptions.",
+    title: "Automations and assistant",
+    body: "Background automations and an assistant that answers questions from your project data.",
     state: "planned",
   },
   {
     when: "Q4 2027",
     title: "Enterprise controls",
-    body: "Single sign-on, audit exports, and deployment options for commercial and government programs.",
+    body: "Single sign-on, audit exports, and admin controls for larger teams.",
     state: "planned",
   },
 ];

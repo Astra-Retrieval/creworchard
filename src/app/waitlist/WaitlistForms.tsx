@@ -86,7 +86,7 @@ export function WaitlistForms({ initialMode, notice }: { initialMode: Mode; noti
               <input id="w-seats" name="seats" type="number" min={1} max={500} defaultValue={1} />
             </div>
             <div className="field">
-              <label htmlFor="w-notes">What would you fly with it? <span style={{ textTransform: "none", letterSpacing: 0 }}>(optional)</span></label>
+              <label htmlFor="w-notes">What are you building? <span style={{ textTransform: "none", letterSpacing: 0 }}>(optional)</span></label>
               <textarea id="w-notes" name="notes" maxLength={1000} />
             </div>
             {/* Honeypot: hidden from people, tempting to bots */}
