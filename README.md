@@ -58,6 +58,14 @@ The site runs without any keys. Forms show a "not connected yet" notice until Su
    stripe listen --forward-to localhost:3000/api/stripe/webhook
    ```
 
+### Sales tax
+
+The product uses tax code `txcd_10103001` (SaaS, business use) and every price is tax-exclusive, so tax is added on top of the per-seat price. To start collecting:
+
+1. In Stripe, open **Settings → Tax** and add your head office address (Stripe Tax shows "pending" until you do).
+2. Add a registration under **Tax → Registrations** for each state where you're registered to collect tax. With no registrations, Stripe calculates $0 tax.
+3. Set `STRIPE_AUTOMATIC_TAX=true` in Vercel and redeploy. Checkout then asks for a billing address and adds tax.
+
 ### How "no charge until launch" works
 
 Early-bird Checkout creates a subscription with `trial_end` set to 2027-01-01 00:00 UTC and requires a card. Stripe bills the first month automatically when the trial ends. If someone signs up within 48 hours of launch (Stripe's minimum trial length), the trial is skipped and billing starts immediately.
