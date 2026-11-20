@@ -49,6 +49,21 @@ The site runs without any keys. Forms show a "not connected yet" notice until Su
    update public.profiles set role = 'admin' where email = 'you@example.com';
    ```
 
+### Email templates
+
+Branded HTML for every Supabase auth email lives in `supabase/templates/`. Each link points at `/auth/confirm` with a one-time `token_hash`, so links work in any browser. In Supabase → **Authentication → Emails → Templates**, open each template, set the subject, switch the body to source/HTML, and paste the whole file:
+
+| Supabase template | File | Subject |
+| --- | --- | --- |
+| Confirm signup | `confirmation.html` | Confirm your email for Crew Orchard |
+| Reset password | `recovery.html` | Reset your Crew Orchard password |
+| Magic link | `magic_link.html` | Your Crew Orchard sign-in link |
+| Change email address | `email_change.html` | Confirm your new email for Crew Orchard |
+| Invite user | `invite.html` | You're invited to Crew Orchard |
+| Reauthentication | `reauthentication.html` | Your Crew Orchard verification code |
+
+The logo is served from `public/email/crew-orchard-logo.png` (PNG, because Gmail and Outlook don't show SVG). To change the wording, edit `scripts/build-email-templates.py` and run `python3 scripts/build-email-templates.py supabase/templates`.
+
 ## Connecting Stripe
 
 1. Create the product and four prices (use a test key first):
