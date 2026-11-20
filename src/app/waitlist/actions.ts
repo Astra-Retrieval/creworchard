@@ -4,6 +4,8 @@ import { redirect } from "next/navigation";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { createEarlyBirdCheckout } from "@/lib/checkout";
+import { planMetadata } from "@/lib/plan-metadata";
+import { EARLY_BIRD } from "@/lib/site";
 import { env, isStripeConfigured, isSupabaseAdminConfigured, isSupabaseConfigured, NOT_CONFIGURED_MESSAGE } from "@/lib/env";
 
 export interface FormState {
@@ -81,7 +83,8 @@ export async function createEarlyBirdAccount(_prev: FormState, fd: FormData): Pr
     email,
     password,
     options: {
-      data: { full_name, organization, seats },
+      // Plan fields feed the confirmation email ({{ .Data.plan_name }} and friends).
+      data: { full_name, organization, seats, ...planMetadata(EARLY_BIRD, seats) },
       emailRedirectTo: `${env.siteUrl}/auth/callback?next=/account`,
     },
   });

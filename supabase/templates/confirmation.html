@@ -39,7 +39,38 @@
             <h1 class="h1" style="margin:0 0 18px;font-family:'Michroma',Arial,Helvetica,sans-serif;font-size:28px;font-weight:400;line-height:1.2;letter-spacing:0.5px;text-transform:uppercase;color:#EEF1F8;">Welcome aboard</h1>
             <p style="margin:0 0 16px;font-family:Montserrat,Helvetica,Arial,sans-serif;font-size:16px;line-height:1.6;color:#C9CFDC;">{{ if .Data.full_name }}Hi {{ .Data.full_name }},{{ else }}Hi there,{{ end }}</p>
             <p style="margin:0 0 16px;font-family:Montserrat,Helvetica,Arial,sans-serif;font-size:16px;line-height:1.6;color:#C9CFDC;">Confirm that <strong style="color:#EEF1F8;">{{ .Email }}</strong> is your email address to finish creating your Crew Orchard account.</p>
-            <p style="margin:0 0 16px;font-family:Montserrat,Helvetica,Arial,sans-serif;font-size:16px;line-height:1.6;color:#C9CFDC;">Your early-bird price of <strong style="color:#7EE0B2;">$10 per seat, per month</strong> stays locked in, and nothing is charged until launch on January 1, 2027.</p>
+{{ if .Data.price_per_seat }}
+            <p style="margin:0 0 16px;font-family:Montserrat,Helvetica,Arial,sans-serif;font-size:16px;line-height:1.6;color:#C9CFDC;">Here&rsquo;s the plan you chose{{ if .Data.plan_id }}{{ if eq .Data.plan_id "early_bird" }}. Your early-bird price is locked in for life{{ end }}{{ end }}:</p>
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:4px 0 8px;border-top:2px solid #7EE0B2;">
+                <tr>
+                  <td style="padding:8px 0;border-bottom:1px dashed #26304A;font-family:'IBM Plex Mono',Menlo,Consolas,monospace;font-size:12px;letter-spacing:1.5px;text-transform:uppercase;color:#98A1B8;">Plan</td>
+                  <td align="right" style="padding:8px 0;border-bottom:1px dashed #26304A;font-family:Montserrat,Helvetica,Arial,sans-serif;font-size:15px;font-weight:600;color:#EEF1F8;">{{ .Data.plan_name }}</td>
+                </tr>
+                <tr>
+                  <td style="padding:8px 0;border-bottom:1px dashed #26304A;font-family:'IBM Plex Mono',Menlo,Consolas,monospace;font-size:12px;letter-spacing:1.5px;text-transform:uppercase;color:#98A1B8;">Price</td>
+                  <td align="right" style="padding:8px 0;border-bottom:1px dashed #26304A;font-family:Montserrat,Helvetica,Arial,sans-serif;font-size:15px;font-weight:600;color:#EEF1F8;">{{ .Data.price_per_seat }} per seat / month</td>
+                </tr>
+{{ if .Data.seats }}
+                <tr>
+                  <td style="padding:8px 0;border-bottom:1px dashed #26304A;font-family:'IBM Plex Mono',Menlo,Consolas,monospace;font-size:12px;letter-spacing:1.5px;text-transform:uppercase;color:#98A1B8;">Seats</td>
+                  <td align="right" style="padding:8px 0;border-bottom:1px dashed #26304A;font-family:Montserrat,Helvetica,Arial,sans-serif;font-size:15px;font-weight:600;color:#EEF1F8;">{{ .Data.seats }}</td>
+                </tr>
+{{ end }}
+{{ if .Data.monthly_total }}
+                <tr>
+                  <td style="padding:8px 0;border-bottom:1px dashed #26304A;font-family:'IBM Plex Mono',Menlo,Consolas,monospace;font-size:12px;letter-spacing:1.5px;text-transform:uppercase;color:#98A1B8;">Monthly total</td>
+                  <td align="right" style="padding:8px 0;border-bottom:1px dashed #26304A;font-family:Montserrat,Helvetica,Arial,sans-serif;font-size:15px;font-weight:600;color:#7EE0B2;">{{ .Data.monthly_total }}</td>
+                </tr>
+{{ end }}
+{{ if .Data.first_charge_date }}
+                <tr>
+                  <td style="padding:8px 0;border-bottom:1px dashed #26304A;font-family:'IBM Plex Mono',Menlo,Consolas,monospace;font-size:12px;letter-spacing:1.5px;text-transform:uppercase;color:#98A1B8;">First charge</td>
+                  <td align="right" style="padding:8px 0;border-bottom:1px dashed #26304A;font-family:Montserrat,Helvetica,Arial,sans-serif;font-size:15px;font-weight:600;color:#EEF1F8;">{{ .Data.first_charge_date }}</td>
+                </tr>
+{{ end }}
+            </table>
+            <p style="margin:0;font-family:Montserrat,Helvetica,Arial,sans-serif;font-size:13px;line-height:1.6;color:#98A1B8;">{{ if .Data.first_charge_date }}Nothing is charged until {{ .Data.first_charge_date }}. {{ end }}Prices are per seat, billed monthly, plus any applicable sales tax.</p>
+{{ end }}
             <!-- Button (table-based so it renders in Outlook) -->
             <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:28px 0 28px;">
               <tr>

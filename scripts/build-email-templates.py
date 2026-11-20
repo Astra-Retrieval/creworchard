@@ -89,6 +89,34 @@ def fallback(url, note):
             </div>
 """
 
+def plan_row(label, value, accent=False):
+    color = "#7EE0B2" if accent else "#EEF1F8"
+    return f"""                <tr>
+                  <td style="padding:8px 0;border-bottom:1px dashed #26304A;font-family:'IBM Plex Mono',Menlo,Consolas,monospace;font-size:12px;letter-spacing:1.5px;text-transform:uppercase;color:#98A1B8;">{label}</td>
+                  <td align="right" style="padding:8px 0;border-bottom:1px dashed #26304A;font-family:Montserrat,Helvetica,Arial,sans-serif;font-size:15px;font-weight:600;color:{color};">{value}</td>
+                </tr>
+"""
+
+# Plan summary for the sign-up confirmation email. Every value comes from the
+# user's metadata, set by the site at sign-up (src/lib/plan-metadata.ts), so the
+# template never needs editing when prices or the launch date change. Accounts
+# without plan metadata simply skip the box. first_charge_date is only present
+# while billing is deferred to launch, so that line disappears after launch.
+PLAN_SUMMARY = (
+    "{{ if .Data.price_per_seat }}\n"
+    + f'            <p style="{P}">Here&rsquo;s the plan you chose{{{{ if .Data.plan_id }}}}{{{{ if eq .Data.plan_id "early_bird" }}}}. Your early-bird price is locked in for life{{{{ end }}}}{{{{ end }}}}:</p>\n'
+    + """            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:4px 0 8px;border-top:2px solid #7EE0B2;">
+"""
+    + plan_row("Plan", "{{ .Data.plan_name }}")
+    + plan_row("Price", "{{ .Data.price_per_seat }} per seat / month")
+    + "{{ if .Data.seats }}\n" + plan_row("Seats", "{{ .Data.seats }}") + "{{ end }}\n"
+    + "{{ if .Data.monthly_total }}\n" + plan_row("Monthly total", "{{ .Data.monthly_total }}", accent=True) + "{{ end }}\n"
+    + "{{ if .Data.first_charge_date }}\n" + plan_row("First charge", "{{ .Data.first_charge_date }}") + "{{ end }}\n"
+    + "            </table>\n"
+    + f'            <p style="{SMALL}">{{{{ if .Data.first_charge_date }}}}Nothing is charged until {{{{ .Data.first_charge_date }}}}. {{{{ end }}}}Prices are per seat, billed monthly, plus any applicable sales tax.</p>\n'
+    + "{{ end }}\n"
+)
+
 def link(t, nxt): return "{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=" + t + "&next=" + nxt
 
 TEMPLATES = {
@@ -97,7 +125,7 @@ TEMPLATES = {
     title="Confirm your email", preheader="One click to confirm your email and finish creating your Crew Orchard account.",
     eyebrow="Account &middot; Confirm email", heading="Welcome aboard",
     body=para(GREET) + para("Confirm that <strong style=\"color:#EEF1F8;\">{{ .Email }}</strong> is your email address to finish creating your Crew Orchard account.")
-      + para("Your early-bird price of <strong style=\"color:#7EE0B2;\">$10 per seat, per month</strong> stays locked in, and nothing is charged until launch on January 1, 2027.")
+      + PLAN_SUMMARY
       + button(link("email","/account"), "Confirm my email")
       + fallback(link("email","/account"), "This link can only be used once. If the button doesn&rsquo;t work, paste this address into your browser. Didn&rsquo;t sign up? You can safely ignore this email.")),
   "recovery": dict(
