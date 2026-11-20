@@ -3,6 +3,7 @@ import { IBM_Plex_Mono, Inter, Michroma, Montserrat } from "next/font/google";
 import { Nav } from "@/components/Nav";
 import { Footer } from "@/components/Footer";
 import { getSession } from "@/lib/auth";
+import { decideProductAccess, getProductAccessMode } from "@/lib/product-access";
 import { ONE_LINER, PRODUCT_NAME } from "@/lib/site";
 import "./globals.css";
 
@@ -22,10 +23,14 @@ export const viewport: Viewport = { themeColor: "#070A14" };
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const session = await getSession();
+  // Only signed-in people can ever enter the product, so skip the lookup for visitors.
+  const showApp = session
+    ? decideProductAccess(session.profile, true, await getProductAccessMode()).allowed
+    : false;
   return (
     <html lang="en" className={`${michroma.variable} ${montserrat.variable} ${inter.variable} ${plexMono.variable}`}>
       <body>
-        <Nav signedIn={Boolean(session)} isAdmin={session?.profile?.role === "admin"} />
+        <Nav signedIn={Boolean(session)} isAdmin={session?.profile?.role === "admin"} showApp={showApp} />
         <main>{children}</main>
         <Footer />
       </body>

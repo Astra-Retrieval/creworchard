@@ -10,6 +10,7 @@ export const metadata: Metadata = { title: "Sign in" };
 const NOTICES: Record<string, string> = {
   confirm: "Check your inbox to confirm your email, then sign in to see your seat.",
   closed: "Your account has been closed. Safe travels.",
+  app: "Sign in to open Crew Orchard. You'll find it under the App tab.",
   auth: "That link was invalid or expired. Please sign in again, or request a new reset link.",
   reset: "That reset link was invalid or already used. Request a new one with \"Forgot password?\" and use the newest email.",
 };

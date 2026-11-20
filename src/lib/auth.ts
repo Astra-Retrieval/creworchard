@@ -7,6 +7,8 @@ export interface Profile {
   full_name: string | null;
   organization: string | null;
   role: "member" | "admin";
+  /** Testers can enter the product before it opens (and, later, see test features). */
+  is_tester: boolean;
   plan: string;
   seats: number;
   member_number: number;

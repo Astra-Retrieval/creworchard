@@ -88,6 +88,20 @@ The product uses tax code `txcd_10103001` (SaaS, business use) and every price i
 
 Early-bird Checkout creates a subscription with `trial_end` set to 2027-01-01 00:00 UTC and requires a card. Stripe bills the first month automatically when the trial ends. If someone signs up within 48 hours of launch (Stripe's minimum trial length), the trial is skipped and billing starts immediately.
 
+## Product access (/app)
+
+The product lives under `/app`, behind one access rule (`src/lib/product-access-rules.ts`):
+
+| Who | Before launch | After launch |
+| --- | --- | --- |
+| Admins | ✅ | ✅ |
+| Testers (toggle per member on `/admin`) | ✅ | ✅ |
+| Members with an active or trialing subscription | ❌ "page not found" | ✅ |
+| Members without an active subscription | ❌ "page not found" | ❌ "Your seat isn't active" |
+| Signed-out visitors | ❌ "page not found" | ➡️ sent to sign in |
+
+The **Product access** card on `/admin` sets the mode: **Automatic** (the default) opens at launch, 2027-01-01 00:00 UTC. **Open now** and **Keep closed** are manual overrides. The mode is stored in the `app_settings` table, and the tester flag is `profiles.is_tester`. Run `npm test` to check the rule against every case.
+
 ## Data model
 
 - `waitlist`: name, email (unique, case-insensitive), organization, use case, expected seats, notes, and an `invite_code` column to fill at launch. Server-only (RLS on, no policies).
