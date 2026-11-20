@@ -7,6 +7,14 @@ import { EARLY_BIRD, LAUNCH_UNIX } from "@/lib/site";
 const MIN_TRIAL_SECONDS = 49 * 60 * 60;
 
 /**
+ * True while new subscriptions still get a free trial until launch. After that
+ * (and in the last ~2 days before launch) billing starts at checkout.
+ */
+export function billingStartsAtLaunch(now = Date.now()): boolean {
+  return LAUNCH_UNIX - Math.floor(now / 1000) > MIN_TRIAL_SECONDS;
+}
+
+/**
  * Creates a Stripe Checkout session for the early-bird subscription.
  * The card is collected now; the subscription sits in a free trial that ends
  * at launch, which is when the first invoice is created and charged.
@@ -21,11 +29,10 @@ export async function createEarlyBirdCheckout(opts: {
   const price = process.env.STRIPE_PRICE_EARLY_BIRD;
   if (!stripe || !price) throw new Error("Stripe is not configured");
 
-  const nowUnix = Math.floor(Date.now() / 1000);
   // Stripe Tax must be activated (head office address set) before this is turned on,
   // otherwise Checkout Session creation fails. See README "Sales tax".
   const collectTax = process.env.STRIPE_AUTOMATIC_TAX === "true";
-  const deferBilling = LAUNCH_UNIX - nowUnix > MIN_TRIAL_SECONDS;
+  const deferBilling = billingStartsAtLaunch();
 
   const session = await stripe.checkout.sessions.create({
     mode: "subscription",
