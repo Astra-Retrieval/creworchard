@@ -1,12 +1,48 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getSession } from "@/lib/auth";
+import { cleanName } from "@/lib/names";
 import { createEarlyBirdCheckout } from "@/lib/checkout";
 import { getStripe } from "@/lib/stripe";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import type { FormState } from "@/app/waitlist/actions";
+
+/**
+ * Lets a signed-in member change the name we greet them by. The name lives in
+ * two places, and both are updated:
+ *  - the auth user's metadata (full_name), which emails read as {{ .Data.full_name }}
+ *  - the profiles row, which the account and admin pages read
+ * Members can't write to profiles directly (no RLS update policy), so that
+ * write goes through the service-role client after the session is checked.
+ */
+export async function updateName(_prev: FormState, fd: FormData): Promise<FormState> {
+  const fullName = cleanName(fd.get("full_name"));
+  if (!fullName) return { status: "error", message: "Please enter your name." };
+
+  const session = await getSession();
+  if (!session) return { status: "error", message: "Your session expired. Please sign in again." };
+
+  const supabase = await createClient();
+  const admin = createAdminClient();
+  if (!supabase || !admin) return { status: "error", message: "Account changes are not available right now." };
+
+  const { error: metaError } = await supabase.auth.updateUser({ data: { full_name: fullName } });
+  if (metaError) {
+    console.error("name metadata update failed", metaError);
+    return { status: "error", message: "We couldn't save your name. Please try again." };
+  }
+  const { error: profileError } = await admin.from("profiles").update({ full_name: fullName }).eq("id", session.user.id);
+  if (profileError) {
+    console.error("name profile update failed", profileError);
+    return { status: "error", message: "We couldn't save your name. Please try again." };
+  }
+
+  revalidatePath("/account");
+  return { status: "success", message: fullName };
+}
 
 /** For members whose account exists but who left Stripe Checkout before saving a card. */
 export async function resumeCheckout() {

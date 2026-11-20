@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { CloseAccount } from "./CloseAccount";
+import { EditName } from "./EditName";
+import { firstNameOf } from "@/lib/names";
 import { resumeCheckout } from "./actions";
 import { signOut } from "@/app/signin/actions";
 import { Countdown } from "@/components/Countdown";
@@ -26,7 +28,7 @@ export default async function AccountPage({ searchParams }: { searchParams: Prom
   const { checkout } = await searchParams;
   const p = session.profile;
 
-  const firstName = (p?.full_name || session.user.email || "crew").split(/[\s@]/)[0];
+  const firstName = firstNameOf(p?.full_name);
   const seats = p?.seats ?? 1;
   const status = p?.subscription_status;
   const reserved = status === "trialing" || status === "active";
@@ -47,7 +49,7 @@ export default async function AccountPage({ searchParams }: { searchParams: Prom
 
           <div>
             <p className="eyebrow">Status · Pre-launch · All systems nominal</p>
-            <h1>Welcome aboard, {firstName}</h1>
+            <h1>{firstName ? `Welcome aboard, ${firstName}` : "Welcome aboard"}</h1>
             <p className="lede">
               Crew Orchard launches on <strong>{LAUNCH_LABEL}</strong>. Your early-bird price is
               locked in. We&apos;ll email you the moment it opens.
@@ -66,7 +68,7 @@ export default async function AccountPage({ searchParams }: { searchParams: Prom
           <div className="card boarding">
             <div className="stack-sm">
               <p className="eyebrow" style={{ margin: 0 }}>Early-bird crew pass</p>
-              <div style={{ fontWeight: 600, fontSize: 20 }}>{p?.full_name || session.user.email}</div>
+              <EditName name={p?.full_name ?? null} email={session.user.email ?? ""} />
               {p?.organization && <div className="muted small">{p.organization}</div>}
               <div className="row" style={{ marginTop: 14 }}>
                 <span className="pill pill-mint">{seats} {seats === 1 ? "seat" : "seats"}</span>
