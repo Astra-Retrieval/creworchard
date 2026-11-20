@@ -15,19 +15,21 @@ export function EditName({ name, email }: { name: string | null; email: string }
 
   if (!editing) {
     return (
-      <div className="stack-sm">
-        <div className="row" style={{ gap: 10 }}>
-          <div style={{ fontWeight: 600, fontSize: 20 }}>{name || <span className="muted">Add your name</span>}</div>
+      <div style={{ display: "grid", gap: 4 }}>
+        <div className="row" style={{ gap: 12, alignItems: "center" }}>
+          <div style={{ fontWeight: 600, fontSize: 26, lineHeight: 1.2, overflowWrap: "anywhere" }}>
+            {name || <span className="muted">Add your name</span>}
+          </div>
           <button
             type="button"
             className="btn btn-ghost"
-            style={{ padding: "4px 12px", fontSize: 13 }}
+            style={{ padding: "4px 12px", fontSize: 12 }}
             onClick={() => setEditing(true)}
           >
-            {name ? "Edit name" : "Add name"}
+            {name ? "Edit" : "Add name"}
           </button>
         </div>
-        <div className="muted small">{email}</div>
+        <div className="muted small" style={{ overflowWrap: "anywhere" }}>{email}</div>
         {state.status === "success" && (
           <div className="hint" role="status" style={{ color: "var(--mint)" }}>Name saved.</div>
         )}

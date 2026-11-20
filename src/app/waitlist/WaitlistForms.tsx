@@ -16,8 +16,17 @@ function Notice({ state }: { state: FormState }) {
   );
 }
 
-export function WaitlistForms({ initialMode, notice }: { initialMode: Mode; notice?: string }) {
-  const [mode, setMode] = useState<Mode>(initialMode);
+export function WaitlistForms({
+  initialMode,
+  notice,
+  earlyBirdOpen = true,
+}: {
+  initialMode: Mode;
+  notice?: string;
+  /** False after the early-bird cutoff: only the waitlist form is offered. */
+  earlyBirdOpen?: boolean;
+}) {
+  const [mode, setMode] = useState<Mode>(earlyBirdOpen ? initialMode : "waitlist");
   const [seats, setSeats] = useState(1);
   const [wState, wAction, wPending] = useActionState(joinWaitlist, initial);
   const [eState, eAction, ePending] = useActionState(createEarlyBirdAccount, initial);
@@ -25,14 +34,16 @@ export function WaitlistForms({ initialMode, notice }: { initialMode: Mode; noti
 
   return (
     <div className="card">
-      <div className="segmented" role="group" aria-label="Choose how to sign up">
-        <button type="button" aria-pressed={mode === "waitlist"} onClick={() => setMode("waitlist")}>
-          Waitlist · ${waitlistPrice}
-        </button>
-        <button type="button" aria-pressed={mode === "early_bird"} onClick={() => setMode("early_bird")}>
-          Early bird · ${EARLY_BIRD.price}
-        </button>
-      </div>
+      {earlyBirdOpen && (
+        <div className="segmented" role="group" aria-label="Choose how to sign up">
+          <button type="button" aria-pressed={mode === "waitlist"} onClick={() => setMode("waitlist")}>
+            Waitlist · ${waitlistPrice}
+          </button>
+          <button type="button" aria-pressed={mode === "early_bird"} onClick={() => setMode("early_bird")}>
+            Early bird · ${EARLY_BIRD.price}
+          </button>
+        </div>
+      )}
 
       {notice && <div className="notice notice-info" style={{ marginBottom: 18 }}>{notice}</div>}
 
@@ -42,12 +53,14 @@ export function WaitlistForms({ initialMode, notice }: { initialMode: Mode; noti
             <p className="eyebrow" style={{ margin: 0 }}>Signal received</p>
             <h2 style={{ fontSize: 26 }}>You&apos;re on the list</h2>
             <Notice state={wState} />
-            <p className="muted">
-              Want the lower lifetime price instead?{" "}
-              <button type="button" className="btn btn-ghost" style={{ padding: "6px 14px", marginLeft: 6 }} onClick={() => setMode("early_bird")}>
-                Switch to early bird
-              </button>
-            </p>
+            {earlyBirdOpen && (
+              <p className="muted">
+                Want the lower lifetime price instead?{" "}
+                <button type="button" className="btn btn-ghost" style={{ padding: "6px 14px", marginLeft: 6 }} onClick={() => setMode("early_bird")}>
+                  Switch to early bird
+                </button>
+              </p>
+            )}
           </div>
         ) : (
           <form action={wAction} className="form" noValidate>

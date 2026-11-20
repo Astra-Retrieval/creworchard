@@ -25,6 +25,8 @@ export async function GET(_req: Request, { params }: { params: Promise<{ kind: s
     csv = toCsv(data.waitlist as unknown as Record<string, unknown>[], ["full_name", "email", "organization", "use_case", "seats", "notes", "created_at"]);
   } else if (kind === "members") {
     csv = toCsv(data.members as unknown as Record<string, unknown>[], ["member_number", "full_name", "email", "organization", "seats", "subscription_status", "stripe_customer_id", "created_at"]);
+  } else if (kind === "messages") {
+    csv = toCsv(data.messages as unknown as Record<string, unknown>[], ["created_at", "name", "email", "topic", "message", "handled_at"]);
   } else {
     return new NextResponse("Not found", { status: 404 });
   }

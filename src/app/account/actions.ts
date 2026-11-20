@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getSession } from "@/lib/auth";
 import { cleanName } from "@/lib/names";
+import { isEarlyBirdOpen } from "@/lib/site";
 import { createEarlyBirdCheckout } from "@/lib/checkout";
 import { getStripe } from "@/lib/stripe";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -48,6 +49,8 @@ export async function updateName(_prev: FormState, fd: FormData): Promise<FormSt
 export async function resumeCheckout() {
   const session = await getSession();
   if (!session?.user.email) redirect("/signin");
+  // After the cutoff the trial can't reach launch, so the early-bird checkout is closed.
+  if (!isEarlyBirdOpen()) redirect("/account?checkout=closed");
   const url = await createEarlyBirdCheckout({
     userId: session.user.id,
     email: session.user.email,

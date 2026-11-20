@@ -6,7 +6,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createEarlyBirdCheckout } from "@/lib/checkout";
 import { cleanName } from "@/lib/names";
 import { planMetadata } from "@/lib/plan-metadata";
-import { EARLY_BIRD } from "@/lib/site";
+import { EARLY_BIRD, EARLY_BIRD_CLOSED_MESSAGE, isEarlyBirdOpen } from "@/lib/site";
 import { env, isStripeConfigured, isSupabaseAdminConfigured, isSupabaseConfigured, NOT_CONFIGURED_MESSAGE } from "@/lib/env";
 
 export interface FormState {
@@ -65,6 +65,9 @@ export async function joinWaitlist(_prev: FormState, fd: FormData): Promise<Form
  * Checkout to save a card. Nothing is charged until launch day.
  */
 export async function createEarlyBirdAccount(_prev: FormState, fd: FormData): Promise<FormState> {
+  // Authoritative cutoff check: pages may be cached, but this runs on every submit.
+  if (!isEarlyBirdOpen()) return { status: "error", message: EARLY_BIRD_CLOSED_MESSAGE };
+
   const full_name = cleanName(fd.get("full_name"));
   const email = str(fd, "email", 254).toLowerCase();
   const password = String(fd.get("password") ?? "");

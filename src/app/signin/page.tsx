@@ -3,7 +3,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { SignInForm } from "./SignInForm";
 import { getSession } from "@/lib/auth";
-import { EARLY_BIRD } from "@/lib/site";
+import { EARLY_BIRD, EARLY_BIRD_CLOSES_LABEL, isEarlyBirdOpen } from "@/lib/site";
 
 export const metadata: Metadata = { title: "Sign in" };
 
@@ -29,7 +29,11 @@ export default async function SignInPage({ searchParams }: { searchParams: Promi
             waitlist? You&apos;ll get a registration code by email at launch.
           </p>
           <p className="muted small">
-            No account yet? <Link href="/waitlist?plan=early_bird" style={{ color: "var(--mint)" }}>Claim the early-bird price</Link>.
+            {isEarlyBirdOpen() ? (
+              <>No account yet? <Link href="/waitlist?plan=early_bird" style={{ color: "var(--mint)" }}>Claim the early-bird price</Link> before {EARLY_BIRD_CLOSES_LABEL}.</>
+            ) : (
+              <>No account yet? <Link href="/waitlist" style={{ color: "var(--mint)" }}>Join the waitlist</Link> for a launch code.</>
+            )}
           </p>
         </div>
         <div className="stack">
