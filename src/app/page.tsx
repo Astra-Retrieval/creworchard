@@ -23,7 +23,6 @@ export default function HomePage() {
           </Link>
         </div>
       </div>
-      <div className="hero-photo" aria-hidden />
     </section>
   );
 }

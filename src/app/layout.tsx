@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { IBM_Plex_Mono, Inter, Michroma, Montserrat } from "next/font/google";
 import { Nav } from "@/components/Nav";
 import { Footer } from "@/components/Footer";
+import { Starfield } from "@/components/Starfield";
 import { getSession } from "@/lib/auth";
 import { ONE_LINER, PRODUCT_NAME } from "@/lib/site";
 import "./globals.css";
@@ -25,6 +26,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   return (
     <html lang="en" className={`${michroma.variable} ${montserrat.variable} ${inter.variable} ${plexMono.variable}`}>
       <body>
+        <Starfield />
         <Nav signedIn={Boolean(session)} isAdmin={session?.profile?.role === "admin"} />
         <main>{children}</main>
         <Footer />

@@ -50,26 +50,65 @@ body {
   overflow-x: hidden;
 }
 
-/* Natural starfield: tiny, uneven, never neon */
-body::before {
-  content: "";
+/* ── Night sky (src/components/Starfield.tsx) ─────────────────
+   Plain black with natural starlight and slow, quiet motion. */
+
+.starfield {
   position: fixed;
   inset: 0;
-  pointer-events: none;
   z-index: 0;
-  opacity: 0.55;
-  background-image:
-    radial-gradient(1px 1px at 12% 18%, #fff8 50%, transparent 51%),
-    radial-gradient(1px 1px at 27% 72%, #fff6 50%, transparent 51%),
-    radial-gradient(1px 1px at 44% 33%, #fff5 50%, transparent 51%),
-    radial-gradient(1.5px 1.5px at 63% 12%, #fff7 50%, transparent 51%),
-    radial-gradient(1px 1px at 78% 58%, #fff5 50%, transparent 51%),
-    radial-gradient(1px 1px at 91% 26%, #fff6 50%, transparent 51%),
-    radial-gradient(1px 1px at 8% 88%, #fff4 50%, transparent 51%),
-    radial-gradient(1.5px 1.5px at 55% 91%, #fff5 50%, transparent 51%),
-    radial-gradient(1px 1px at 36% 52%, #fff3 50%, transparent 51%),
-    radial-gradient(1px 1px at 84% 84%, #fff4 50%, transparent 51%);
-  background-size: 640px 640px;
+  overflow: hidden;
+  pointer-events: none;
+  background: #000;
+}
+.star-layer {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 2400px;
+  margin-left: -1200px; /* keep the tile centred on any screen width */
+  animation: star-drift linear infinite;
+  will-change: transform;
+}
+.star-tile { position: absolute; left: 0; border-radius: 50%; background: transparent; }
+@keyframes star-drift {
+  from { transform: translate3d(0, 0, 0); }
+  to { transform: translate3d(0, -1400px, 0); }
+}
+
+.twinkle {
+  position: absolute;
+  border-radius: 50%;
+  background: #eef1f8;
+  box-shadow: 0 0 4px rgba(238, 241, 248, 0.6);
+  opacity: 0.15;
+  animation: twinkle ease-in-out infinite;
+}
+@keyframes twinkle {
+  0%, 100% { opacity: 0.15; transform: scale(0.8); }
+  50% { opacity: 0.95; transform: scale(1.15); }
+}
+
+.shooting-star {
+  position: absolute;
+  top: 14%;
+  left: 72%;
+  width: 140px;
+  height: 1px;
+  /* Tail fades out behind a bright head at the leading (right) end. */
+  background: linear-gradient(90deg, rgba(238, 241, 248, 0), rgba(238, 241, 248, 0.85));
+  opacity: 0;
+  transform: rotate(155deg);
+  transform-origin: left center;
+  animation: shooting-star 21s ease-out 6s infinite;
+}
+/* Rotated 155deg, the element's +x axis points down and to the left, so the
+   streak falls that way and is visible for about one second of each cycle. */
+@keyframes shooting-star {
+  0% { opacity: 0; transform: rotate(155deg) translateX(0); }
+  1% { opacity: 1; }
+  6% { opacity: 0; transform: rotate(155deg) translateX(520px); }
+  100% { opacity: 0; transform: rotate(155deg) translateX(520px); }
 }
 
 main, header, footer { position: relative; z-index: 1; }
@@ -297,7 +336,7 @@ h3 {
   border-top: 1px solid var(--hull);
   padding: 40px 0 48px;
   margin-top: 40px;
-  background: var(--void);
+  background: transparent; /* let the night sky show through */
 }
 .footer-inner {
   display: flex;
@@ -327,20 +366,17 @@ h3 {
   min-height: calc(100vh - 73px);
   display: flex;
   flex-direction: column;
-  justify-content: flex-start;
+  justify-content: center;
   overflow: hidden;
 }
-.hero-content { position: relative; z-index: 2; padding-top: clamp(56px, 11vh, 120px); }
-.hero h1 { max-width: 18ch; }
-.hero-photo {
-  position: absolute;
-  left: 0; right: 0; bottom: 0;
-  height: min(48vh, 520px);
-  background: url("/hero-rock.jpg") center top / cover no-repeat;
-  z-index: 1;
-  mask-image: linear-gradient(to bottom, transparent 0%, #000 35%);
-  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, #000 35%);
+.hero-content {
+  position: relative;
+  z-index: 2;
+  /* Vertical only: the .container class supplies the side gutters. */
+  padding-top: clamp(48px, 8vh, 96px);
+  padding-bottom: clamp(64px, 12vh, 140px);
 }
+.hero h1 { max-width: 18ch; }
 .hero-actions { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; }
 .hero-meta { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 26px; }
 
