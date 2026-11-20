@@ -13,6 +13,7 @@ export function Footer() {
           <Link href="/pricing">Pricing</Link>
           <Link href="/waitlist">Waitlist</Link>
           <Link href="/signin">Sign in</Link>
+          <Link href="/#contact">Contact</Link>
         </div>
         <p className="footer-parent" style={{ width: "100%", margin: 0 }}>
           {PRODUCT_NAME} is a product of{" "}

@@ -4,8 +4,9 @@ import { redirect } from "next/navigation";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { createEarlyBirdCheckout } from "@/lib/checkout";
+import { cleanName } from "@/lib/names";
 import { planMetadata } from "@/lib/plan-metadata";
-import { EARLY_BIRD } from "@/lib/site";
+import { EARLY_BIRD, EARLY_BIRD_CLOSED_MESSAGE, isEarlyBirdOpen } from "@/lib/site";
 import { env, isStripeConfigured, isSupabaseAdminConfigured, isSupabaseConfigured, NOT_CONFIGURED_MESSAGE } from "@/lib/env";
 
 export interface FormState {
@@ -29,7 +30,7 @@ function seatsFrom(fd: FormData) {
 export async function joinWaitlist(_prev: FormState, fd: FormData): Promise<FormState> {
   if (str(fd, "company_website")) return { status: "success", message: "You're on the list." }; // honeypot
 
-  const full_name = str(fd, "full_name", 120);
+  const full_name = cleanName(fd.get("full_name"));
   const email = str(fd, "email", 254).toLowerCase();
   const organization = str(fd, "organization", 160) || null;
   const use_case = str(fd, "use_case", 20);
@@ -64,7 +65,10 @@ export async function joinWaitlist(_prev: FormState, fd: FormData): Promise<Form
  * Checkout to save a card. Nothing is charged until launch day.
  */
 export async function createEarlyBirdAccount(_prev: FormState, fd: FormData): Promise<FormState> {
-  const full_name = str(fd, "full_name", 120);
+  // Authoritative cutoff check: pages may be cached, but this runs on every submit.
+  if (!isEarlyBirdOpen()) return { status: "error", message: EARLY_BIRD_CLOSED_MESSAGE };
+
+  const full_name = cleanName(fd.get("full_name"));
   const email = str(fd, "email", 254).toLowerCase();
   const password = String(fd.get("password") ?? "");
   const organization = str(fd, "organization", 160) || null;

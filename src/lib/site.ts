@@ -22,6 +22,25 @@ export const LAUNCH_LABEL = "January 1, 2027";
 /** Unix seconds, used for Stripe `trial_end` so nobody is charged before launch. */
 export const LAUNCH_UNIX = Math.floor(LAUNCH_DATE.getTime() / 1000);
 
+/**
+ * Early-bird sign-ups close at 6:00 PM Eastern on December 29, 2026.
+ * Stripe needs a free trial to last at least 48 hours, and billing is deferred
+ * to launch (Jan 1 00:00 UTC) only while launch is more than 49 hours away
+ * (see billingStartsAtLaunch in src/lib/checkout.ts). Closing here guarantees
+ * every early bird gets the free trial and is first charged at launch.
+ */
+export const EARLY_BIRD_CLOSES_ISO = "2026-12-29T23:00:00Z";
+export const EARLY_BIRD_CLOSES = new Date(EARLY_BIRD_CLOSES_ISO);
+export const EARLY_BIRD_CLOSES_LABEL = "December 29 at 6:00 PM ET";
+export const EARLY_BIRD_CLOSES_SHORT = "Dec 29";
+
+export function isEarlyBirdOpen(now: number = Date.now()): boolean {
+  return now < EARLY_BIRD_CLOSES.getTime();
+}
+
+/** Message shown wherever early-bird sign-up is attempted after the cutoff. */
+export const EARLY_BIRD_CLOSED_MESSAGE = `Early-bird sign-ups closed on ${EARLY_BIRD_CLOSES_LABEL}. Join the waitlist and we'll email you a code at launch.`;
+
 export type TierId = "early_bird" | "waitlist" | "academic" | "enterprise";
 
 export interface Tier {

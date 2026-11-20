@@ -524,19 +524,84 @@ select { appearance: none; background-image: linear-gradient(45deg, transparent 
 .telemetry-row span:last-child { color: var(--starlight); text-align: right; }
 .telemetry-row .ok { color: var(--mint); }
 
-.boarding {
-  position: relative;
+/* ── Crew pass (src/app/account/CrewPass.tsx) ─────────────────
+   A boarding pass: main section | perforation | tear-off stub. */
+
+.crew-pass {
   display: grid;
-  grid-template-columns: 1fr auto;
-  gap: 20px;
+  grid-template-columns: minmax(0, 1fr) 190px;
+  background: var(--card);
+  border: 2px solid var(--hull);
+  border-radius: var(--radius);
   overflow: hidden;
 }
-.boarding-stub { border-left: 2px dashed var(--hull); padding-left: 24px; min-width: 150px; text-align: center; }
-@media (max-width: 560px) {
-  .boarding { grid-template-columns: 1fr; }
-  .boarding-stub { border-left: 0; border-top: 2px dashed var(--hull); padding: 20px 0 0; }
+.crew-pass-main { padding: 28px 28px 26px; display: grid; gap: 10px; align-content: start; min-width: 0; }
+.crew-pass-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 8px; }
+.crew-pass-label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--dust);
 }
-.member-no { font-family: var(--font-data); font-weight: 800; font-size: 56px; color: var(--mint); line-height: 1; font-variant-numeric: tabular-nums; }
+.crew-pass-fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px 20px;
+  margin: 12px 0 0;
+  padding-top: 16px;
+  border-top: 1px dashed var(--hull);
+}
+.crew-pass-fields dt {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--dust);
+  margin-bottom: 4px;
+}
+.crew-pass-fields dd { margin: 0; font-weight: 600; font-size: 16px; color: var(--starlight); }
+.crew-pass-fields dd.ok { color: var(--mint); }
+.crew-pass-fields dd.hold { color: var(--solar-gold); }
+
+/* Tear-off stub. The dashed border is the perforation, and the two circles
+   (page-coloured, half outside the card) are the notches cut into it. */
+.crew-pass-stub {
+  position: relative;
+  border-left: 2px dashed var(--hull);
+  padding: 28px 18px 22px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: color-mix(in srgb, var(--navy) 55%, var(--card));
+}
+.crew-pass-stub::before,
+.crew-pass-stub::after {
+  content: "";
+  position: absolute;
+  left: -13px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--void);
+  border: 2px solid var(--hull);
+}
+.crew-pass-stub::before { top: -14px; }
+.crew-pass-stub::after { bottom: -14px; }
+.crew-pass-barcode { width: 128px; height: 30px; margin-top: 16px; color: var(--dust); opacity: 0.8; }
+.crew-pass-code { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.24em; color: var(--dust); margin-top: 6px; }
+.member-no { font-family: var(--font-data); font-weight: 800; font-size: 48px; color: var(--mint); line-height: 1.05; font-variant-numeric: tabular-nums; }
+
+@media (max-width: 560px) {
+  .crew-pass { grid-template-columns: 1fr; }
+  .crew-pass-main { padding: 22px 20px; }
+  .crew-pass-stub { border-left: 0; border-top: 2px dashed var(--hull); padding: 22px 18px; }
+  .crew-pass-stub::before,
+  .crew-pass-stub::after { top: -13px; bottom: auto; }
+  .crew-pass-stub::before { left: -14px; }
+  .crew-pass-stub::after { left: auto; right: -14px; }
+}
 
 /* ── Admin tables ─────────────────────────────────────────── */
 
