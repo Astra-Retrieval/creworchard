@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { loadAdminData, requireAdmin } from "@/lib/admin-data";
-import { EARLY_BIRD } from "@/lib/site";
-import { setMessageHandled } from "./actions";
+import { EARLY_BIRD, LAUNCH_LABEL } from "@/lib/site";
+import { setMessageHandled, setProductAccess, setTester } from "./actions";
+import { getProductAccessMode, isProductOpen } from "@/lib/product-access";
 
 export const metadata: Metadata = { title: "Admin", robots: { index: false, follow: false } };
 export const dynamic = "force-dynamic";
@@ -35,6 +36,8 @@ export default async function AdminPage() {
 
   const { waitlist, members, messages } = data;
   const unread = messages.filter((m) => !m.handled_at).length;
+  const accessMode = await getProductAccessMode();
+  const productOpen = isProductOpen(accessMode);
   const reserved = members.filter((m) => m.subscription_status === "trialing" || m.subscription_status === "active");
   const reservedSeats = reserved.reduce((n, m) => n + m.seats, 0);
   const waitlistSeats = waitlist.reduce((n, w) => n + w.seats, 0);
@@ -61,6 +64,47 @@ export default async function AdminPage() {
                 <div className="stat-label">{s.label}</div>
               </div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="section-tight" id="product-access">
+        <div className="container">
+          <div className="card" style={{ display: "grid", gap: 16 }}>
+            <div className="admin-head" style={{ margin: 0, alignItems: "center" }}>
+              <div>
+                <p className="eyebrow" style={{ margin: 0 }}>Product access · /app</p>
+                <h2 style={{ margin: "8px 0 0", fontSize: 24 }}>
+                  {productOpen ? "Open to members" : "Private: admins and testers only"}
+                </h2>
+              </div>
+              <span className={`pill ${productOpen ? "pill-mint" : "pill-gold"}`}>{productOpen ? "Open" : "Closed"}</span>
+            </div>
+            <p className="muted" style={{ margin: 0 }}>
+              {accessMode === "auto" && <>Opens automatically on <strong style={{ color: "var(--starlight)" }}>{LAUNCH_LABEL}</strong> to members with an active subscription. </>}
+              {accessMode === "open" && <>Opened manually. Members with an active subscription can get in now. </>}
+              {accessMode === "closed" && <>Closed manually. It stays closed, even after launch, until you change it. </>}
+              Admins and testers can always get in.
+            </p>
+            <div className="row">
+              {([
+                ["auto", `Automatic (open ${LAUNCH_LABEL})`],
+                ["open", "Open now"],
+                ["closed", "Keep closed"],
+              ] as const).map(([mode, label]) => (
+                <form key={mode} action={setProductAccess}>
+                  <input type="hidden" name="mode" value={mode} />
+                  <button
+                    className={`btn ${accessMode === mode ? "btn-primary" : "btn-ghost"}`}
+                    style={{ padding: "8px 16px", fontSize: 14 }}
+                    aria-pressed={accessMode === mode}
+                  >
+                    {label}
+                  </button>
+                </form>
+              ))}
+              <a href="/app" className="btn btn-ghost" style={{ padding: "8px 16px", fontSize: 14 }}>Open the app →</a>
+            </div>
           </div>
         </div>
       </section>
@@ -121,7 +165,7 @@ export default async function AdminPage() {
             ) : (
               <table>
                 <thead>
-                  <tr><th>#</th><th>Name</th><th>Email</th><th>Organization</th><th>Seats</th><th>Status</th><th>Joined</th></tr>
+                  <tr><th>#</th><th>Name</th><th>Email</th><th>Organization</th><th>Seats</th><th>Status</th><th>Joined</th><th>Tester</th></tr>
                 </thead>
                 <tbody>
                   {members.map((m) => (
@@ -137,6 +181,20 @@ export default async function AdminPage() {
                         </span>
                       </td>
                       <td>{fmtDate(m.created_at)}</td>
+                      <td>
+                        <form action={setTester}>
+                          <input type="hidden" name="id" value={m.id} />
+                          <input type="hidden" name="tester" value={m.is_tester ? "false" : "true"} />
+                          <button
+                            className={`btn ${m.is_tester ? "btn-primary" : "btn-ghost"}`}
+                            style={{ padding: "4px 12px", fontSize: 12 }}
+                            aria-pressed={m.is_tester}
+                            title={m.is_tester ? "Remove tester access" : "Give early access to the product"}
+                          >
+                            {m.is_tester ? "Tester ✓" : "Make tester"}
+                          </button>
+                        </form>
+                      </td>
                     </tr>
                   ))}
                 </tbody>

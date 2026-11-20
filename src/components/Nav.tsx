@@ -4,9 +4,10 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Logo } from "./Logo";
 
-export function Nav({ signedIn, isAdmin }: { signedIn: boolean; isAdmin: boolean }) {
+export function Nav({ signedIn, isAdmin, showApp = false }: { signedIn: boolean; isAdmin: boolean; showApp?: boolean }) {
   const pathname = usePathname();
   const tabs = [
+    ...(showApp ? [{ href: "/app", label: "App" }] : []),
     { href: "/", label: "Home" },
     { href: "/features", label: "Features" },
     { href: "/pricing", label: "Pricing" },
