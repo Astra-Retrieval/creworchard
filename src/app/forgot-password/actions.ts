@@ -7,8 +7,9 @@ import type { FormState } from "@/app/waitlist/actions";
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 /**
- * Emails a password-reset link. The link lands on /auth/callback, which signs
- * the user in and forwards them to /reset-password to choose a new password.
+ * Emails a password-reset link. With the token-hash email template (see README),
+ * the link lands on /auth/confirm, which signs the user in on any device and
+ * forwards them to /reset-password. redirectTo is kept for the default template.
  * The reply is the same whether or not the address has an account, so the
  * form can't be used to discover who has signed up.
  */
