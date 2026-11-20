@@ -17,7 +17,7 @@ export default async function AdminPage() {
       <section className="section">
         <div className="container">
           <h1>Admin</h1>
-          <div className="notice notice-info">Set SUPABASE_SERVICE_ROLE_KEY to load sign-ups.</div>
+          <div className="notice notice-info">Set SUPABASE_SECRET_KEY to load sign-ups.</div>
         </div>
       </section>
     );

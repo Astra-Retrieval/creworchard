@@ -38,10 +38,13 @@ The site runs without any keys. Forms show a "not connected yet" notice until Su
 
 ## Connecting Supabase
 
-1. Create a Supabase project and fill in `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, and `SUPABASE_SERVICE_ROLE_KEY`.
+1. Create a Supabase project and fill in `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` (`sb_publishable_...`), and `SUPABASE_SECRET_KEY` (`sb_secret_...`) from Project Settings → API Keys. The older `NEXT_PUBLIC_SUPABASE_ANON_KEY` and `SUPABASE_SERVICE_ROLE_KEY` names are still read as a fallback.
 2. Apply `supabase/migrations/20261120000000_init.sql` (SQL editor, or `supabase db push`).
-3. In Auth → URL Configuration, set the Site URL and add `<site>/auth/callback` as a redirect URL.
-4. Create your own account through `/waitlist?plan=early_bird`, then promote it:
+3. In Auth → URL Configuration, set the Site URL to the exact public address (for example `https://www.creworchard.com`) and add `<site>/**` as a redirect URL.
+4. In Auth → Emails → Templates, change the link in two templates so email links work in any browser:
+   - **Confirm signup:** `{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=email&next=/account`
+   - **Reset password:** `{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=recovery&next=/reset-password`
+5. Create your own account through `/waitlist?plan=early_bird`, then promote it:
    ```sql
    update public.profiles set role = 'admin' where email = 'you@example.com';
    ```

@@ -6,7 +6,7 @@ import { env, isSupabaseConfigured } from "@/lib/env";
 export async function createClient() {
   if (!isSupabaseConfigured()) return null;
   const cookieStore = await cookies();
-  return createServerClient(env.supabaseUrl, env.supabaseAnonKey, {
+  return createServerClient(env.supabaseUrl, env.supabasePublishableKey, {
     cookies: {
       getAll() {
         return cookieStore.getAll();
