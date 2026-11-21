@@ -3,6 +3,7 @@
  * browser. Types only, so both sides can import it.
  */
 import type { LineStyle } from "./canvas-layout.ts";
+import type { DocContent } from "./doc-content.ts";
 import type { ProjectRole, SubsystemColor } from "./project-rules.ts";
 
 export type { LineStyle };
@@ -35,16 +36,31 @@ export interface IntegrationNode {
   member_ids: string[];
 }
 
-/** A document without its text, for lists. */
+/** A document without its content, for lists. */
 export interface DocSummary {
   id: string;
   title: string;
   subsystem_id: string | null;
   integration_id: string | null;
   updated_at: string;
+  /** Number of the latest saved version; 0 means it has never been saved. */
+  head_version: number;
 }
 export interface DocFull extends DocSummary {
+  /** Word processor content. null for a document that has never been saved in it. */
+  content: DocContent | null;
+  /** The same document as plain text. */
   body: string;
+}
+
+/** One saved version of a document, without its content. */
+export interface VersionMeta {
+  version: number;
+  title: string;
+  message: string | null;
+  restored_from: number | null;
+  created_at: string;
+  author: string;
 }
 
 export interface BomItem {
@@ -84,7 +100,17 @@ export interface WorkspaceApi {
   setSubsystemMember(input: { subsystemId: string; userId: string; assigned: boolean }): Promise<Result>;
   createDocument(input: { title: string } & DocScope): Promise<Result<{ id: string }>>;
   getDocument(id: string): Promise<Result<{ document: DocFull }>>;
-  saveDocument(input: { id: string; title: string; body: string }): Promise<Result<{ updated_at: string }>>;
+  /**
+   * Saves a new version. `baseVersion` is the version the editor started
+   * from; if someone else has saved since, the save is refused.
+   */
+  saveDocument(input: { id: string; title: string; content: DocContent; message: string; baseVersion: number }): Promise<Result<{ version: number; updated_at: string }>>;
+  listVersions(id: string): Promise<Result<{ versions: VersionMeta[] }>>;
+  getVersion(input: { id: string; version: number }): Promise<Result<{ title: string; content: DocContent }>>;
+  /** Saves an old version's content again as the newest version. History is kept. */
+  restoreVersion(input: { id: string; version: number; baseVersion: number }): Promise<Result<{ version: number; updated_at: string; title: string; content: DocContent }>>;
+  /** Moves a document to the project drive, or to a sub-system's or integration's. */
+  moveDocument(input: { id: string } & DocScope): Promise<Result>;
   setPin(input: { subsystemId: string; documentId: string; pinned: boolean }): Promise<Result>;
   listBom(subsystemId: string): Promise<Result<{ items: BomItem[] }>>;
   addBomItem(input: { subsystemId: string; partNumber: string; description: string; quantity: number; unitCost: number }): Promise<Result<{ item: BomItem }>>;

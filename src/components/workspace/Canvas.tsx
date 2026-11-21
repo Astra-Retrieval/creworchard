@@ -23,6 +23,7 @@ export function Canvas({
   pins,
   abilities,
   api,
+  documentsHref,
 }: {
   subsystems: SubsystemNode[];
   integrations: IntegrationNode[];
@@ -31,6 +32,8 @@ export function Canvas({
   pins: Pin[];
   abilities: Abilities;
   api: WorkspaceApi;
+  /** The Documents tab's address, for opening documents in the word processor. */
+  documentsHref: string;
 }) {
   const [selection, setSelection] = useState<Selection | null>(null);
   const [pan, setPan] = useState({ x: 0, y: 0 });
@@ -220,6 +223,8 @@ export function Canvas({
           subsystem={selectedSubsystem}
           integration={selectedIntegration}
           subsystems={subsystems}
+          integrations={integrations}
+          documentsHref={documentsHref}
           people={people}
           documents={documents}
           pins={pins}

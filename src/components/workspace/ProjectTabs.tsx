@@ -15,7 +15,7 @@ export function ProjectTabs({ projectHref }: { projectHref: string }) {
   return (
     <nav className="ws-tabs" aria-label="Project sections">
       {tabs.map((t) => (
-        <Link key={t.href} href={t.href} className="ws-tab" aria-current={pathname === t.href ? "page" : undefined}>
+        <Link key={t.href} href={t.href} className="ws-tab" aria-current={pathname === t.href || (t.href !== projectHref && pathname.startsWith(`${t.href}/`)) ? "page" : undefined}>
           {t.label}
         </Link>
       ))}

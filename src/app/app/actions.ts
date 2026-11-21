@@ -7,7 +7,8 @@ import { can, canChangeMember, canManageMembers, hasFreeSeat, isOrgPermission, i
 import { isProjectRole, peopleOutsideSubsystems, randomSubsystemColor, wouldRemoveLastLead, type ProjectRole } from "@/lib/project-rules";
 import { nextNodePosition } from "@/lib/canvas-layout";
 import { loadSeatLimit, loadStructure, requireOrg, requireProductUser, requireProject } from "@/lib/orgs";
-import type { BomItem, DocFull, DocScope, Result } from "@/lib/workspace-types";
+import { MAX_CONTENT_CHARS, docToText, isDocContent, type DocContent } from "@/lib/doc-content";
+import type { BomItem, DocFull, DocScope, Result, VersionMeta } from "@/lib/workspace-types";
 import type { FormState } from "@/app/waitlist/actions";
 
 /**
@@ -349,7 +350,15 @@ export async function setSubsystemMember(
 
 // ── Documents ────────────────────────────────────────────────
 
-const DOC_COLUMNS = "id, title, body, subsystem_id, integration_id, updated_at";
+const DOC_COLUMNS = "id, title, body, content, subsystem_id, integration_id, updated_at, head_version";
+const SAVE_CONFLICT = "Someone else saved this document while you were editing. Copy your changes, reload, and apply them to the newest version.";
+
+/** The drive a document goes in. A sub-system wins if both are given. */
+function scopeOf(input: DocScope | undefined) {
+  const subsystemId = isUuid(input?.subsystemId) ? input.subsystemId : null;
+  const integrationId = !subsystemId && isUuid(input?.integrationId) ? input.integrationId : null;
+  return { subsystem_id: subsystemId, integration_id: integrationId };
+}
 
 /** Starts an empty document in the project drive, or in a sub-system's or integration's drive. */
 export async function createDocument(
@@ -361,12 +370,10 @@ export async function createDocument(
   if (!abilities.editContent) return fail(NO_EDIT);
   const title = cleanName(input?.title).slice(0, 160);
   if (!title) return fail("Give the document a title.");
-  const subsystemId = isUuid(input?.subsystemId) ? input.subsystemId : null;
-  const integrationId = !subsystemId && isUuid(input?.integrationId) ? input.integrationId : null;
   // Composite foreign keys reject a sub-system or integration from another project.
   const { data, error } = await db
     .from("documents")
-    .insert({ project_id: projectId, subsystem_id: subsystemId, integration_id: integrationId, title, created_by: userId, updated_by: userId })
+    .insert({ project_id: projectId, ...scopeOf(input), title, created_by: userId, updated_by: userId })
     .select("id")
     .single<{ id: string }>();
   if (error || !data) {
@@ -375,6 +382,21 @@ export async function createDocument(
   }
   revalidatePath(projectPath(orgId, projectId), "layout");
   return { ok: true, id: data.id };
+}
+
+/** Moves a document to another drive. Its history moves with it. */
+export async function moveDocument(orgId: string, projectId: string, input: { id: string } & DocScope): Promise<Result> {
+  const { db, abilities } = await requireProject(orgId, projectId);
+  if (!abilities.editContent) return fail(NO_EDIT);
+  if (!isUuid(input?.id)) return fail();
+  const { error } = await db.from("documents").update(scopeOf(input)).eq("project_id", projectId).eq("id", input.id);
+  if (error) {
+    if (error.code === "23503") return fail("That sub-system or integration no longer exists.");
+    console.error("move document failed", error);
+    return fail();
+  }
+  revalidatePath(projectPath(orgId, projectId), "layout");
+  return { ok: true };
 }
 
 export async function getDocument(orgId: string, projectId: string, id: string): Promise<Result<{ document: DocFull }>> {
@@ -389,32 +411,159 @@ export async function getDocument(orgId: string, projectId: string, id: string):
   return { ok: true, document: data };
 }
 
+/**
+ * Writes one new version of a document and makes it the current one.
+ * The version row goes in first: its unique (document, version) key is what
+ * stops two people who saved at the same moment from both winning.
+ */
+async function commitVersion(
+  ctx: Awaited<ReturnType<typeof requireProject>>,
+  projectId: string,
+  v: { id: string; title: string; content: DocContent; message: string | null; baseVersion: number; restoredFrom?: number },
+): Promise<Result<{ version: number; updated_at: string }>> {
+  const { db, userId } = ctx;
+  const { data: current, error: readError } = await db
+    .from("documents")
+    .select("head_version")
+    .eq("project_id", projectId)
+    .eq("id", v.id)
+    .maybeSingle<{ head_version: number }>();
+  if (readError) {
+    console.error("read document head failed", readError);
+    return fail();
+  }
+  if (!current) return fail("That document doesn't exist any more.");
+  if (current.head_version !== v.baseVersion) return fail(SAVE_CONFLICT);
+
+  const version = current.head_version + 1;
+  const { error: versionError } = await db.from("document_versions").insert({
+    document_id: v.id,
+    project_id: projectId,
+    version,
+    title: v.title,
+    content: v.content,
+    message: v.message,
+    restored_from: v.restoredFrom ?? null,
+    created_by: userId,
+  });
+  if (versionError) {
+    if (versionError.code === "23505") return fail(SAVE_CONFLICT);
+    console.error("save version failed", versionError);
+    return fail();
+  }
+  const { data, error } = await db
+    .from("documents")
+    .update({ title: v.title, content: v.content, body: docToText(v.content).slice(0, 200000), head_version: version, updated_by: userId })
+    .eq("project_id", projectId)
+    .eq("id", v.id)
+    .select("updated_at")
+    .maybeSingle<{ updated_at: string }>();
+  if (error || !data) {
+    console.error("update document failed", error);
+    // Don't leave a version in the history that never became current.
+    await db.from("document_versions").delete().eq("document_id", v.id).eq("version", version);
+    return fail();
+  }
+  return { ok: true, version, updated_at: data.updated_at };
+}
+
+/** Saves the document as a new version, with an optional note about what changed. */
 export async function saveDocument(
   orgId: string,
   projectId: string,
-  input: { id: string; title: string; body: string },
-): Promise<Result<{ updated_at: string }>> {
-  const { db, userId, abilities } = await requireProject(orgId, projectId);
-  if (!abilities.editContent) return fail(NO_EDIT);
+  input: { id: string; title: string; content: DocContent; message: string; baseVersion: number },
+): Promise<Result<{ version: number; updated_at: string }>> {
+  const ctx = await requireProject(orgId, projectId);
+  if (!ctx.abilities.editContent) return fail(NO_EDIT);
   const title = cleanName(input?.title).slice(0, 160);
-  const body = String(input?.body ?? "");
-  if (!isUuid(input?.id)) return fail();
+  const message = String(input?.message ?? "").replace(/\s+/g, " ").trim().slice(0, 200) || null;
+  if (!isUuid(input?.id) || !Number.isInteger(input?.baseVersion)) return fail();
   if (!title) return fail("Give the document a title.");
-  if (body.length > 200000) return fail("This document is too long to save. Split it into smaller documents.");
+  if (!isDocContent(input.content)) return fail("This document couldn't be read. Reload and try again.");
+  if (JSON.stringify(input.content).length > MAX_CONTENT_CHARS) {
+    return fail("This document is too large to save. Split it into smaller documents, or remove large pasted content.");
+  }
+  const result = await commitVersion(ctx, projectId, { id: input.id, title, content: input.content, message, baseVersion: input.baseVersion });
+  if (result.ok) revalidatePath(projectPath(orgId, projectId), "layout");
+  return result;
+}
+
+/** A document's saved versions, newest first, with who saved each. */
+export async function listVersions(orgId: string, projectId: string, id: string): Promise<Result<{ versions: VersionMeta[] }>> {
+  const { db } = await requireProject(orgId, projectId);
+  if (!isUuid(id)) return fail();
   const { data, error } = await db
-    .from("documents")
-    .update({ title, body, updated_by: userId })
+    .from("document_versions")
+    .select("version, title, message, restored_from, created_at, created_by")
     .eq("project_id", projectId)
-    .eq("id", input.id)
-    .select("updated_at")
-    .maybeSingle<{ updated_at: string }>();
+    .eq("document_id", id)
+    .order("version", { ascending: false })
+    .limit(500)
+    .returns<(Omit<VersionMeta, "author"> & { created_by: string | null })[]>();
   if (error) {
-    console.error("save document failed", error);
+    console.error("list versions failed", error);
     return fail();
   }
-  if (!data) return fail("That document doesn't exist any more.");
+  const rows = data ?? [];
+  const authorIds = [...new Set(rows.map((r) => r.created_by).filter((x): x is string => Boolean(x)))];
+  const { data: profiles } = authorIds.length
+    ? await db.from("profiles").select("id, email, full_name").in("id", authorIds).returns<{ id: string; email: string; full_name: string | null }[]>()
+    : { data: [] };
+  const names = new Map((profiles ?? []).map((p) => [p.id, p.full_name || p.email]));
+  return {
+    ok: true,
+    versions: rows.map(({ created_by, ...v }) => ({ ...v, author: (created_by && names.get(created_by)) || "Former member" })),
+  };
+}
+
+async function readVersion(ctx: Awaited<ReturnType<typeof requireProject>>, projectId: string, id: string, version: number) {
+  if (!isUuid(id) || !Number.isInteger(version) || version < 1) return null;
+  const { data, error } = await ctx.db
+    .from("document_versions")
+    .select("title, content")
+    .eq("project_id", projectId)
+    .eq("document_id", id)
+    .eq("version", version)
+    .maybeSingle<{ title: string; content: DocContent }>();
+  if (error) console.error("get version failed", error);
+  return data ?? null;
+}
+
+export async function getVersion(
+  orgId: string,
+  projectId: string,
+  input: { id: string; version: number },
+): Promise<Result<{ title: string; content: DocContent }>> {
+  const ctx = await requireProject(orgId, projectId);
+  const found = await readVersion(ctx, projectId, input?.id, input?.version);
+  return found ? { ok: true, ...found } : fail("That version couldn't be found.");
+}
+
+/**
+ * Brings back an old version by saving its content again as the newest
+ * version. Nothing is deleted, so a restore can itself be undone.
+ */
+export async function restoreVersion(
+  orgId: string,
+  projectId: string,
+  input: { id: string; version: number; baseVersion: number },
+): Promise<Result<{ version: number; updated_at: string; title: string; content: DocContent }>> {
+  const ctx = await requireProject(orgId, projectId);
+  if (!ctx.abilities.editContent) return fail(NO_EDIT);
+  if (!Number.isInteger(input?.baseVersion)) return fail();
+  const old = await readVersion(ctx, projectId, input?.id, input?.version);
+  if (!old) return fail("That version couldn't be found.");
+  const result = await commitVersion(ctx, projectId, {
+    id: input.id,
+    title: old.title,
+    content: old.content,
+    message: `Restored version ${input.version}`,
+    baseVersion: input.baseVersion,
+    restoredFrom: input.version,
+  });
+  if (!result.ok) return result;
   revalidatePath(projectPath(orgId, projectId), "layout");
-  return { ok: true, updated_at: data.updated_at };
+  return { ...result, title: old.title, content: old.content };
 }
 
 /** Pins a document to a sub-system's sidebar on the canvas, or unpins it. */

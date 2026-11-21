@@ -6,5 +6,5 @@ import { Canvas } from "@/components/workspace/Canvas";
 export default async function ProjectCanvasPage({ params }: { params: Promise<{ orgId: string; projectId: string }> }) {
   const { orgId, projectId } = await params;
   const workspace = await loadWorkspace(orgId, projectId);
-  return <Canvas {...workspace} api={workspaceApi(orgId, projectId)} />;
+  return <Canvas {...workspace} api={workspaceApi(orgId, projectId)} documentsHref={`/app/org/${orgId}/project/${projectId}/documents`} />;
 }

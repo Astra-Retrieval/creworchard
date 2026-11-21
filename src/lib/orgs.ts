@@ -262,7 +262,7 @@ export async function loadStructure(db: Db, projectId: string) {
 export async function listDocuments(db: Db, projectId: string): Promise<DocSummary[]> {
   const { data, error } = await db
     .from("documents")
-    .select("id, title, subsystem_id, integration_id, updated_at")
+    .select("id, title, subsystem_id, integration_id, updated_at, head_version")
     .eq("project_id", projectId)
     .order("updated_at", { ascending: false })
     .returns<DocSummary[]>();

@@ -1,9 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { PROJECT_ROLES, PROJECT_SECTIONS, projectRoleLabel, wouldRemoveLastLead } from "@/lib/project-rules";
-import { listDocuments, listMembers, listProjectBom, listProjectTeam, loadStructure, requireProject } from "@/lib/orgs";
-import { workspaceApi } from "@/lib/workspace-api";
-import { DocumentsTab } from "@/components/workspace/DocumentsTab";
+import { listMembers, listProjectBom, listProjectTeam, loadStructure, requireProject } from "@/lib/orgs";
 import { AddToTeamForm } from "@/components/workspace/AddToTeamForm";
 import { removeProjectMember, setProjectMemberRole, addProjectMember } from "../../../../../actions";
 
@@ -18,7 +16,10 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
   return { title: findSection(section)?.label };
 }
 
-/** One of a project's left-hand tabs. The list lives in PROJECT_SECTIONS. */
+/**
+ * One of a project's left-hand tabs. The list lives in PROJECT_SECTIONS.
+ * (Documents has its own folder, ../documents, because documents open inside it.)
+ */
 export default async function ProjectSectionPage({ params }: { params: Params }) {
   const { orgId, projectId, section: slug } = await params;
   const section = findSection(slug);
@@ -27,29 +28,6 @@ export default async function ProjectSectionPage({ params }: { params: Params })
 
   if (section.slug === "team") return <TeamTab orgId={orgId} projectId={projectId} />;
   if (section.slug === "bom") return <BomTab orgId={orgId} projectId={projectId} />;
-
-  if (section.slug === "documents") {
-    const [documents, structure] = await Promise.all([listDocuments(ctx.db, projectId), loadStructure(ctx.db, projectId)]);
-    return (
-      <div className="ws-section ws-section-wide">
-        <p className="eyebrow">{ctx.project.name}</p>
-        <h1>Documents</h1>
-        <p className="lede">
-          Every document in the project. New ones made here go in the project-wide drive; each
-          sub-system and integration also has its own drive, opened from the canvas.
-        </p>
-        <DocumentsTab
-          documents={documents}
-          drives={[
-            ...structure.subsystems.map((s) => ({ id: s.id, name: s.name })),
-            ...structure.integrations.map((i) => ({ id: i.id, name: i.name })),
-          ]}
-          api={workspaceApi(orgId, projectId)}
-          canEdit={ctx.abilities.editContent}
-        />
-      </div>
-    );
-  }
 
   const blurb = section.slug === "requirements"
     ? "What the system must do, for the whole project and for each sub-system."
