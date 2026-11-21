@@ -19,8 +19,8 @@ export default async function DocumentsPage({ params }: { params: Promise<{ orgI
       <p className="eyebrow">{project.name}</p>
       <h1>Documents</h1>
       <p className="lede">
-        Everything written in this project. A document saved in an integration also appears in each
-        sub-system it connects, and everything appears here in the project drive.
+        Every document and spreadsheet in this project. Anything saved in an integration also
+        appears in each sub-system it connects, and everything appears here in the project drive.
       </p>
       <DocumentList
         documents={documents}

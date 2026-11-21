@@ -5,6 +5,22 @@
 import assert from "node:assert/strict";
 import { countWords, diffDocs, diffSummary, docToBlocks, isDocContent, textToDoc, visibleInSubsystem, type DocNode } from "../src/lib/doc-content.ts";
 
+import { cellName, columnName, compactSheets, countCells, diffSheets, isSheetContent, sheetDiffSummary, type SheetContent } from "../src/lib/sheet-content.ts";
+
+const sheetA: SheetContent = [{ name: "Budget", id: "s1", celldata: [
+  { r: 0, c: 0, v: { v: "Item", m: "Item" } }, { r: 1, c: 0, v: { v: "Valve", m: "Valve" } }, { r: 1, c: 1, v: { v: 40, m: "40" } },
+  { r: 2, c: 1, v: { v: 40, m: "40", f: "=SUM(B2:B2)" } }, { r: 3, c: 0, v: { v: "Old note", m: "Old note" } },
+] }];
+const sheetB: SheetContent = [
+  { name: "Budget 2027", id: "s1", celldata: [
+    { r: 0, c: 0, v: { v: "Item", m: "Item" } }, { r: 1, c: 0, v: { v: "Valve", m: "Valve" } }, { r: 1, c: 1, v: { v: 60, m: "60" } },
+    { r: 2, c: 1, v: { v: 60, m: "60", f: "=SUM(B2:B2)" } }, { r: 1, c: 2, v: { v: "each", m: "each" } },
+  ] },
+  { name: "Notes", id: "s2", celldata: [{ r: 0, c: 0, v: { v: "hi", m: "hi" } }] },
+];
+const sheetDiff = diffSheets(sheetA, sheetB);
+const matrix = [{ name: "S", id: "x", luckysheet_select_save: [{}], data: [[{ v: 1, m: "1" }, null], [null, {}], [null, { v: "b", m: "b" }]] }];
+
 const p = (text: string): DocNode => ({ type: "paragraph", content: [{ type: "text", text }] });
 const doc = (...content: DocNode[]): DocNode => ({ type: "doc", content });
 const li = (text: string, attrs?: Record<string, unknown>): DocNode => ({ type: attrs ? "taskItem" : "listItem", attrs, content: [p(text)] });
@@ -43,6 +59,22 @@ const checks: [string, unknown, unknown][] = [
   ["but not in an unconnected sub-system", visibleInSubsystem({ subsystem_id: null, integration_id: "i1" }, "c", integrations), false],
   ["another sub-system's document doesn't show", visibleInSubsystem({ subsystem_id: "b", integration_id: null }, "a", integrations), false],
   ["a project-only document doesn't show in a sub-system", visibleInSubsystem({ subsystem_id: null, integration_id: null }, "a", integrations), false],
+  // Spreadsheets.
+  ["column letters", [columnName(0), columnName(25), columnName(26), columnName(701), columnName(702)], ["A", "Z", "AA", "ZZ", "AAA"]],
+  ["cell names", cellName(2, 1), "B3"],
+  ["the grid's matrix is trimmed to the cells that hold something", compactSheets(matrix)[0].celldata, [{ r: 0, c: 0, v: { v: 1, m: "1" } }, { r: 2, c: 1, v: { v: "b", m: "b" } }]],
+  ["view state is dropped when saving", "luckysheet_select_save" in compactSheets(matrix)[0], false],
+  ["cells with content are counted", countCells(sheetA), 5],
+  ["a changed value", sheetDiff.find((c) => "cell" in c && c.cell === "B2"), { kind: "changed", sheet: "Budget 2027", cell: "B2", r: 1, c: 1, before: "40", after: "60" }],
+  ["a formula's new result is reported with the formula", sheetDiff.find((c) => "cell" in c && c.cell === "B3"), { kind: "changed", sheet: "Budget 2027", cell: "B3", r: 2, c: 1, before: "40  (=SUM(B2:B2))", after: "60  (=SUM(B2:B2))" }],
+  ["a new cell", sheetDiff.find((c) => "cell" in c && c.cell === "C2")?.kind, "added"],
+  ["a cleared cell", sheetDiff.find((c) => "cell" in c && c.cell === "A4")?.kind, "removed"],
+  ["a renamed sheet is still compared cell by cell, and a new sheet is reported", sheetDiffSummary(sheetDiff), { added: 3, removed: 1, changed: 2 }],
+  ["a deleted sheet is reported", diffSheets(sheetB, sheetA).some((c) => c.kind === "sheet-removed" && c.sheet === "Notes"), true],
+  ["identical spreadsheets have no changes", diffSheets(sheetA, sheetA), []],
+  ["valid spreadsheet accepted", isSheetContent(sheetB), true],
+  ["a written document is not a spreadsheet", isSheetContent({ type: "doc" }), false],
+  ["bad cell positions rejected", isSheetContent([{ name: "S", celldata: [{ r: -1, c: 0, v: null }] }]), false],
 ];
 
 for (const [name, got, expected] of checks) {

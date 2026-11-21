@@ -983,8 +983,8 @@ td.num { font-family: var(--font-data); font-variant-numeric: tabular-nums; }
 /* Document lists. */
 .ws-modal-wide { width: min(94vw, 980px); }
 .doc-list { display: grid; gap: 16px; }
-.doc-new { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr) auto; gap: 12px; align-items: end; }
-.doc-new:not(:has(select)) { grid-template-columns: minmax(0, 1fr) auto; }
+.doc-new { display: grid; grid-template-columns: auto minmax(0, 1.6fr) minmax(0, 1fr) auto; gap: 12px; align-items: end; }
+.doc-new:not(:has(select)) { grid-template-columns: auto minmax(0, 1fr) auto; }
 .doc-rows { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
 .doc-row { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 14px 16px; text-decoration: none; background: var(--card); border: 2px solid var(--hull); border-radius: var(--radius-sm); transition: border-color 0.15s ease; }
 .doc-row:hover { border-color: var(--mint); }
@@ -1074,6 +1074,30 @@ select.doc-select { width: auto; height: 32px; padding: 0 28px 0 10px; font-size
 .doc-content.resize-cursor { cursor: col-resize; }
 .doc-content p.is-editor-empty:first-child::before { content: attr(data-placeholder); float: left; height: 0; color: var(--dust); pointer-events: none; }
 
+/* Spreadsheets. The grid library draws its own light interface, framed here. */
+.sheet-area { flex: 1; min-width: 0; position: relative; display: flex; flex-direction: column; }
+.sheet-area > .doc-scroll { flex: 1; }
+.sheet-frame { flex: 1; min-height: 0; margin: 14px 14px 78px; border: 2px solid var(--hull); border-radius: 10px; overflow: hidden; background: #fff; color: #222; position: relative; }
+.sheet-frame[hidden] { display: none; }
+.sheet-grid { position: absolute; inset: 0; font-family: Arial, Helvetica, sans-serif; font-size: 13px; line-height: normal; }
+.sheet-grid input[type="text"], .sheet-grid select, .sheet-grid textarea { width: auto; font: inherit; color: inherit; background: #fff; border: 1px solid #d4d4d4; border-radius: 2px; padding: 2px 4px; }
+.sheet-grid label { font: inherit; letter-spacing: 0; text-transform: none; color: inherit; }
+.sheet-grid table { font-size: inherit; }
+.sheet-grid th, .sheet-grid td { padding: 0; border: 0; white-space: normal; }
+.sheet-diff td { white-space: normal; overflow-wrap: anywhere; }
+.sheet-diff ins { text-decoration: none; color: var(--mint); }
+.sheet-diff del { color: var(--flare-coral); }
+.sheet-diff-added td:first-child { box-shadow: inset 3px 0 0 var(--mint); }
+.sheet-diff-removed td:first-child { box-shadow: inset 3px 0 0 var(--flare-coral); }
+.sheet-diff-changed td:first-child { box-shadow: inset 3px 0 0 var(--solar-gold); }
+.doc-kind { padding: 4px; }
+.doc-kind button { padding: 9px 14px; font-size: 11px; }
+.doc-kind-tag { display: inline-block; margin-right: 10px; padding: 2px 7px; border-radius: 5px; font-family: var(--font-mono); font-size: 10px; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; color: var(--orbit-blue); border: 1.5px solid currentColor; vertical-align: 2px; }
+.doc-kind-tag[data-kind="sheet"] { color: var(--mint); }
+.doc-meta [data-autosave="saved"] { color: var(--mint); }
+.doc-meta [data-autosave="failed"] { color: var(--flare-coral); }
+.doc-meta .ws-text-btn { padding: 0 2px; }
+
 /* Version history. */
 .doc-history { width: 330px; flex-shrink: 0; overflow-y: auto; background: var(--card); border-left: 2px solid var(--hull); padding-bottom: 90px; }
 .doc-history-head { padding: 18px 16px 12px; }
@@ -1147,7 +1171,7 @@ tfoot td { border-top: 2px solid var(--hull); border-bottom: 0; }
   .ws-dock { right: 12px; }
   .ws-canvas.has-panel .ws-corner-top-right { right: 12px; }
   .ws-panel { top: auto; left: 12px; right: 12px; bottom: 76px; width: auto; max-width: none; max-height: 58%; }
-  .doc-new { grid-template-columns: 1fr; }
+  .doc-new, .doc-new:not(:has(select)) { grid-template-columns: 1fr; }
   .doc-row { flex-direction: column; align-items: flex-start; gap: 8px; }
   .doc-history { position: absolute; inset: 0 0 0 auto; z-index: 5; width: min(330px, 92%); box-shadow: -12px 0 40px rgb(0 0 0 / 0.5); }
   .doc-body { position: relative; }

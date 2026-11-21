@@ -139,10 +139,17 @@ Whoever creates a project leads it. The organization's owner and admins act as a
 
 - Documents open in a built-in word processor (built on [Tiptap](https://tiptap.dev)): paragraph styles, fonts, sizes, bold, italic, underline, strikethrough, subscript, superscript, text color, highlight, alignment, line spacing, bulleted, numbered, and check lists, quotes, code, links, images by web address, tables, undo and redo, word count, and print.
 - **Where a document is saved**: the project drive, one sub-system, or one integration. It is one document, shown everywhere above where it lives: a document saved in an integration also appears in each sub-system that integration connects, and everything appears in the project drive (the Documents tab). "Saved in" on the document moves it.
+- **Autosave**: a couple of seconds after you stop typing, your changes are saved as a private draft (`document_drafts`, one per person per document). A draft is not a version: it survives closing the tab, and reopening the document brings it back, but nobody else sees it until you press **Save version**. **Discard changes** throws the draft away and returns to the last saved version.
 - **Versions**: saving works like a commit. Each save is a new numbered version with an optional note, the author, and the time. **History** lists them. **What changed** compares a version with the one before it, **Compare to now** compares it with the current document, and unsaved edits can be compared with the last save. **Restore** saves an old version again as the newest one, so nothing is ever deleted and a restore can be undone.
 - If two people edit the same document, the second to save is told someone else saved first, rather than silently overwriting them.
 - Comparison is on the text. Formatting-only changes are not listed.
 - Content is stored as structured data (`documents.content`, `document_versions.content`), not HTML.
+
+**Spreadsheets** (`src/components/workspace/SheetEditor.tsx`, `SheetGrid.tsx`, `src/lib/sheet-content.ts`)
+
+- A document is either a written document or a spreadsheet (`documents.kind`). Spreadsheets are created from the same "New" form, live in the same drives, and roll up the same way.
+- The grid is [FortuneSheet](https://github.com/ruilisi/fortune-sheet): formulas, number formats, fonts, colors, borders, merged cells, alignment, freezing, sorting, filtering, and multiple sheets.
+- Autosave, versions, history, and restore are shared with the word processor (`Versioned.tsx`). Comparing two versions of a spreadsheet lists every cell whose value or formula changed, with before and after, including cells that changed because a formula recalculated, plus sheets added or removed.
 
 **Security**: these tables are server-only (RLS on, no policies). Every page and server action goes through the guards in `src/lib/orgs.ts`, which answer "page not found" to anyone who isn't allowed to see the organization or project. The hierarchy is also enforced by foreign keys: a project member must be in the organization, and a sub-system or integration member must be on the project, so unassigning a seat removes that person everywhere below.
 
@@ -154,4 +161,4 @@ Apply the migrations in `supabase/migrations/` in order before deploying.
 - `profiles`: one row per auth user, created by a trigger. Holds role (`member` or `admin`), seats, a sequential member number, and Stripe IDs and status mirrored by the webhook. Members can read only their own row; all writes go through the server.
 - `organizations`, `organization_members` (role and granted permissions), `projects`, and `project_members` (project role).
 - `subsystems` (note, color, canvas position), `subsystem_members`, `integrations`, `integration_subsystems`, and `integration_members`.
-- `documents` (project, sub-system, or integration drive), `document_versions` (every saved version), `subsystem_pins`, and `bom_items`. All server-only.
+- `documents` (written documents and spreadsheets, in the project, sub-system, or integration drive), `document_versions` (every saved version), `document_drafts` (autosaved, unsaved work), `subsystem_pins`, and `bom_items`. All server-only.

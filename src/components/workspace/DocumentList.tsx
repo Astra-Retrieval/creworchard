@@ -3,15 +3,15 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
-import type { DocSummary, WorkspaceApi } from "@/lib/workspace-types";
-import type { Drive } from "./DocumentEditor";
+import type { DocKind, DocSummary, WorkspaceApi } from "@/lib/workspace-types";
+import { DriveOptions, type Drive } from "./Versioned";
 
 const fmt = (iso: string) =>
   new Date(iso).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
 
 /**
- * A list of documents, each opening in the word processor, with a form to
- * start a new one. Used on the Documents tab (every drive, with a choice of
+ * A list of documents and spreadsheets, each opening in its editor, with a
+ * form to start a new one. Used on the Documents tab (every drive, with a choice of
  * where to save) and in the canvas side panel (one sub-system or integration).
  */
 export function DocumentList({
@@ -36,6 +36,7 @@ export function DocumentList({
 }) {
   const router = useRouter();
   const [title, setTitle] = useState("");
+  const [kind, setKind] = useState<DocKind>("doc");
   const [driveId, setDriveId] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [pending, start] = useTransition();
@@ -49,6 +50,7 @@ export function DocumentList({
     start(async () => {
       const result = await api.createDocument({
         title,
+        kind,
         subsystemId: target?.kind === "subsystem" ? target.id : null,
         integrationId: target?.kind === "integration" ? target.id : null,
       });
@@ -62,24 +64,21 @@ export function DocumentList({
       {canEdit && (
         <form onSubmit={create} className="doc-new">
           <div className="field">
-            <label htmlFor="new-doc-title">New document</label>
-            <input id="new-doc-title" type="text" value={title} onChange={(e) => setTitle(e.target.value)} maxLength={160} placeholder="Title" required />
+            <span className="label">New</span>
+            <div className="segmented doc-kind" role="group" aria-label="What to create">
+              <button type="button" aria-pressed={kind === "doc"} onClick={() => setKind("doc")}>Document</button>
+              <button type="button" aria-pressed={kind === "sheet"} onClick={() => setKind("sheet")}>Spreadsheet</button>
+            </div>
+          </div>
+          <div className="field">
+            <label htmlFor="new-doc-title">Title</label>
+            <input id="new-doc-title" type="text" value={title} onChange={(e) => setTitle(e.target.value)} maxLength={160} placeholder={kind === "sheet" ? "Mass budget" : "Test plan"} required />
           </div>
           {fixedDrive === undefined && (
             <div className="field">
               <label htmlFor="new-doc-drive">Save in</label>
               <select id="new-doc-drive" value={driveId} onChange={(e) => setDriveId(e.target.value)}>
-                <option value="">Project drive</option>
-                {drives.some((d) => d.kind === "subsystem") && (
-                  <optgroup label="Sub-systems">
-                    {drives.filter((d) => d.kind === "subsystem").map((d) => <option key={d.id} value={d.id}>{d.name}</option>)}
-                  </optgroup>
-                )}
-                {drives.some((d) => d.kind === "integration") && (
-                  <optgroup label="Integrations">
-                    {drives.filter((d) => d.kind === "integration").map((d) => <option key={d.id} value={d.id}>{d.name}</option>)}
-                  </optgroup>
-                )}
+                <DriveOptions drives={drives} />
               </select>
             </div>
           )}
@@ -97,7 +96,10 @@ export function DocumentList({
             return (
               <li key={d.id}>
                 <Link href={`${documentsHref}/${d.id}`} className="doc-row">
-                  <span className="doc-row-title">{d.title}</span>
+                  <span className="doc-row-title">
+                    <span className="doc-kind-tag" data-kind={d.kind}>{d.kind === "sheet" ? "Sheet" : "Doc"}</span>
+                    {d.title}
+                  </span>
                   <span className="doc-row-meta">
                     <span className={`pill doc-pill ${drive ? (drive.kind === "subsystem" ? "pill-blue" : "pill-dust") : "pill-mint"}`}>
                       {drive ? drive.name : "Project"}
