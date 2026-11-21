@@ -170,50 +170,72 @@ export const FEATURES: Feature[] = [
   },
 ];
 
-export type MilestoneState = "done" | "next" | "planned";
+export type ProductFeatureStatus = "launch" | "development";
 
-export interface Milestone {
-  when: string;
+export interface ProductFeature {
   title: string;
   body: string;
-  state: MilestoneState;
+  /** For features still in development: when we expect to ship it. A plan, not a promise. */
+  eta?: string;
 }
 
-export const MILESTONES: Milestone[] = [
+/** What is in Crew Orchard on launch day (LAUNCH_LABEL). These are built and being tested in the beta. */
+export const LAUNCH_FEATURES: ProductFeature[] = [
   {
-    when: "Nov 2026",
-    title: "Waitlist and early bird open",
-    body: "Reserve a seat at the lifetime early-bird price or join the waitlist for a launch code.",
-    state: "done",
+    title: "Organizations and projects",
+    body: "Set up an organization for your crew and a project for each thing you are building.",
   },
   {
-    when: "Dec 2026",
-    title: "Private beta with early-bird crews",
-    body: "Early-bird members get first access and help shape what ships.",
-    state: "next",
+    title: "Project canvas",
+    body: "Lay out your project's sub-systems and the integrations between them on one interactive map.",
   },
   {
-    when: "Jan 1, 2027",
-    title: "Crew Orchard 1.0 launches",
-    body: "Project workspaces, crew sharing, and full history go live. Early-bird billing begins and waitlist codes go out.",
-    state: "planned",
+    title: "Documents",
+    body: "A built-in word processor for specs, notes, and decisions, with autosave as you type.",
   },
   {
-    when: "Q2 2027",
-    title: "Integrations and public API",
-    body: "Connect the tools you already use and build on Crew Orchard directly.",
-    state: "planned",
+    title: "Spreadsheets",
+    body: "Spreadsheets that live beside your documents, so the numbers stay with the project.",
   },
   {
-    when: "Q3 2027",
-    title: "Automations and assistant",
-    body: "Background automations and an assistant that answers questions from your project data.",
-    state: "planned",
+    title: "Bills of materials",
+    body: "Track parts, quantities, and costs for each sub-system, rolled up into one project BoM.",
   },
   {
-    when: "Q4 2027",
+    title: "Version history",
+    body: "Every document and spreadsheet keeps its history, so you can see what changed and restore any version.",
+  },
+  {
+    title: "Roles and seats",
+    body: "Owners, admins, and members, with crew-wide sharing and simple per-seat pricing.",
+  },
+];
+
+/** What we are building next, in the order we expect to ship it. */
+export const DEVELOPMENT_FEATURES: ProductFeature[] = [
+  {
+    title: "Tool integrations",
+    body: "Connect the tools you already use so their data flows into your projects.",
+    eta: "Q2 2027",
+  },
+  {
+    title: "Public API",
+    body: "Read and write everything in Crew Orchard from your own scripts and services.",
+    eta: "Q2 2027",
+  },
+  {
+    title: "Automations",
+    body: "Set rules once and let routine tasks run in the background.",
+    eta: "Q3 2027",
+  },
+  {
+    title: "Project assistant",
+    body: "Ask questions in plain language and get answers from your own project data.",
+    eta: "Q3 2027",
+  },
+  {
     title: "Enterprise controls",
     body: "Single sign-on, audit exports, and admin controls for larger teams.",
-    state: "planned",
+    eta: "Q4 2027",
   },
 ];

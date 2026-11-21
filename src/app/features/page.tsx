@@ -3,7 +3,7 @@ import Link from "next/link";
 import { AsteroidBullet } from "@/components/AsteroidBullet";
 import { FeatureMotion } from "@/components/FeatureMotion";
 import { StackArt } from "@/components/StackArt";
-import { FEATURES, MILESTONES, type Category } from "@/lib/site";
+import { DEVELOPMENT_FEATURES, FEATURES, LAUNCH_FEATURES, LAUNCH_LABEL, type Category } from "@/lib/site";
 
 export const metadata: Metadata = { title: "Features" };
 
@@ -13,12 +13,6 @@ const CATEGORY_PILL: Record<Category, { cls: string; label: string }> = {
   team: { cls: "pill-violet", label: "Crew" },
   ai: { cls: "pill-violet", label: "Assistant" },
 };
-
-const STATE_PILL = {
-  done: { cls: "pill-mint", label: "Live" },
-  next: { cls: "pill-blue", label: "Next" },
-  planned: { cls: "pill-gold", label: "Planned" },
-} as const;
 
 export default function FeaturesPage() {
   return (
@@ -64,24 +58,44 @@ export default function FeaturesPage() {
 
       <section className="section">
         <div className="container">
-          <p className="eyebrow">02 · Milestones</p>
-          <h2>Roadmap</h2>
-          <p className="lede">Where we are, and where we are headed next.</p>
-          <div className="card timeline" style={{ marginTop: 32 }}>
-            {MILESTONES.map((m) => (
-              <div className="milestone" key={m.title}>
-                <div className="milestone-when">{m.when}</div>
-                <div className="milestone-track">
-                  <span className={`milestone-dot ${m.state === "done" ? "is-done" : m.state === "next" ? "is-next" : ""}`} />
-                </div>
-                <div className="milestone-body">
-                  <h3>
-                    {m.title} <span className={`pill ${STATE_PILL[m.state].cls}`}>{STATE_PILL[m.state].label}</span>
-                  </h3>
-                  <p>{m.body}</p>
-                </div>
+          <p className="eyebrow">02 · Features</p>
+          <h2>What ships, and what is next</h2>
+          <p className="lede">
+            The features live on launch day, {LAUNCH_LABEL}, and the ones we are building after that.
+          </p>
+          <div className="grid grid-2 feature-groups">
+            <section className="card" aria-labelledby="launch-features">
+              <div className="feature-group-head">
+                <h3 id="launch-features">Launch features</h3>
+                <span className="pill pill-mint">Live at launch</span>
               </div>
-            ))}
+              <ul className="feature-list">
+                {LAUNCH_FEATURES.map((f) => (
+                  <li className="feature-item" key={f.title}>
+                    <span className="feature-item-mark is-live" aria-hidden />
+                    <h4>{f.title}</h4>
+                    <span />
+                    <p>{f.body}</p>
+                  </li>
+                ))}
+              </ul>
+            </section>
+            <section className="card" aria-labelledby="development-features">
+              <div className="feature-group-head">
+                <h3 id="development-features">In development</h3>
+                <span className="pill pill-blue">Coming after launch</span>
+              </div>
+              <ul className="feature-list">
+                {DEVELOPMENT_FEATURES.map((f) => (
+                  <li className="feature-item" key={f.title}>
+                    <span className="feature-item-mark is-dev" aria-hidden />
+                    <h4>{f.title}</h4>
+                    <span className="feature-item-eta">{f.eta ? <><span className="sr-only">Expected </span>{f.eta}</> : null}</span>
+                    <p>{f.body}</p>
+                  </li>
+                ))}
+              </ul>
+            </section>
           </div>
 
           <div className="grid grid-2" style={{ marginTop: 48, alignItems: "center" }}>
