@@ -148,7 +148,7 @@ Whoever creates a project leads it. The organization's owner and admins act as a
 **Spreadsheets** (`src/components/workspace/SheetEditor.tsx`, `SheetGrid.tsx`, `src/lib/sheet-content.ts`)
 
 - A document is either a written document or a spreadsheet (`documents.kind`). Spreadsheets are created from the same "New" form, live in the same drives, and roll up the same way.
-- The grid is [FortuneSheet](https://github.com/ruilisi/fortune-sheet): formulas, number formats, fonts, colors, borders, merged cells, alignment, freezing, sorting, filtering, and multiple sheets.
+- The grid is [FortuneSheet](https://github.com/ruilisi/fortune-sheet), flipped to the app's dark theme in `globals.css` (see the comment above `.sheet-grid`): formulas, number formats, fonts, colors, borders, merged cells, alignment, freezing, sorting, filtering, and multiple sheets.
 - Autosave, versions, history, and restore are shared with the word processor (`Versioned.tsx`). Comparing two versions of a spreadsheet lists every cell whose value or formula changed, with before and after, including cells that changed because a formula recalculated, plus sheets added or removed.
 
 **Security**: these tables are server-only (RLS on, no policies). Every page and server action goes through the guards in `src/lib/orgs.ts`, which answer "page not found" to anyone who isn't allowed to see the organization or project. The hierarchy is also enforced by foreign keys: a project member must be in the organization, and a sub-system or integration member must be on the project, so unassigning a seat removes that person everywhere below.

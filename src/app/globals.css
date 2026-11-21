@@ -1074,16 +1074,37 @@ select.doc-select { width: auto; height: 32px; padding: 0 28px 0 10px; font-size
 .doc-content.resize-cursor { cursor: col-resize; }
 .doc-content p.is-editor-empty:first-child::before { content: attr(data-placeholder); float: left; height: 0; color: var(--dust); pointer-events: none; }
 
-/* Spreadsheets. The grid library draws its own light interface, framed here. */
+/* Spreadsheets.
+   The grid library (FortuneSheet) draws a light interface, with its colors
+   fixed in its own stylesheet and in the canvas it paints cells on, so it
+   can't be themed piece by piece. Instead the whole grid is flipped to dark:
+     invert + hue-rotate  swaps light and dark but keeps each color's hue
+                          (blue stays blue, red stays red)
+     screen blend         lays the result over the app's navy, so the grid's
+                          black becomes the same navy as the rest of the app
+   The color pickers go through the same flip as the cells, so the swatch you
+   pick is the color you get. */
 .sheet-area { flex: 1; min-width: 0; position: relative; display: flex; flex-direction: column; }
 .sheet-area > .doc-scroll { flex: 1; }
-.sheet-frame { flex: 1; min-height: 0; margin: 14px 14px 78px; border: 2px solid var(--hull); border-radius: 10px; overflow: hidden; background: #fff; color: #222; position: relative; }
+.sheet-frame { flex: 1; min-height: 0; margin: 14px 14px 78px; border: 2px solid var(--hull); border-radius: 10px; overflow: hidden; background: var(--card); position: relative; isolation: isolate; }
 .sheet-frame[hidden] { display: none; }
-.sheet-grid { position: absolute; inset: 0; font-family: Arial, Helvetica, sans-serif; font-size: 13px; line-height: normal; }
-.sheet-grid input[type="text"], .sheet-grid select, .sheet-grid textarea { width: auto; font: inherit; color: inherit; background: #fff; border: 1px solid #d4d4d4; border-radius: 2px; padding: 2px 4px; }
+.sheet-grid { position: absolute; inset: 0; color: #222; font-family: var(--font-body); font-size: 13px; line-height: normal; filter: invert(1) hue-rotate(180deg); mix-blend-mode: screen; }
+/* Undo the site's own form and table styling inside the grid. */
+.sheet-grid input[type="text"], .sheet-grid input[type="number"], .sheet-grid select, .sheet-grid textarea { width: auto; font: inherit; color: inherit; background: #fff; border: 1px solid #d4d4d4; border-radius: 2px; padding: 2px 4px; transition: none; }
+.sheet-grid input:focus, .sheet-grid select:focus, .sheet-grid textarea:focus { border-color: #0188fb; }
+.sheet-grid select { appearance: auto; background-image: none; }
 .sheet-grid label { font: inherit; letter-spacing: 0; text-transform: none; color: inherit; }
-.sheet-grid table { font-size: inherit; }
-.sheet-grid th, .sheet-grid td { padding: 0; border: 0; white-space: normal; }
+.sheet-grid table { font-size: inherit; width: auto; }
+.sheet-grid th, .sheet-grid td { padding: 0; border: 0; white-space: normal; position: static; background: none; color: inherit; font: inherit; letter-spacing: 0; text-transform: none; }
+.sheet-grid h1, .sheet-grid h2, .sheet-grid h3 { font-family: inherit; text-transform: none; letter-spacing: 0; }
+.sheet-grid :focus-visible { outline: none; }
+/* A little more room and softer edges for the grid's toolbar and tabs. */
+.sheet-grid .fortune-toolbar { padding: 4px 10px; border-bottom-color: #d9d9d9; }
+.sheet-grid .fortune-toolbar-button, .sheet-grid .fortune-toolbar-combo { border-radius: 6px; }
+.sheet-grid .fortune-fx-editor { border-bottom-color: #d9d9d9; }
+.sheet-grid .fortune-sheettab-container { background: #f3f3f3; }
+/* Pictures placed in a sheet shouldn't be flipped: flip them back. */
+.sheet-grid .fortune-sheet-overlay img, .sheet-grid .luckysheet-modal-dialog-image img { filter: invert(1) hue-rotate(180deg); }
 .sheet-diff td { white-space: normal; overflow-wrap: anywhere; }
 .sheet-diff ins { text-decoration: none; color: var(--mint); }
 .sheet-diff del { color: var(--flare-coral); }
