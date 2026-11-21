@@ -3,7 +3,7 @@ import Link from "next/link";
 import { AsteroidBullet } from "@/components/AsteroidBullet";
 import { FeatureMotion } from "@/components/FeatureMotion";
 import { StackArt } from "@/components/StackArt";
-import { FEATURES, MILESTONES, type Category } from "@/lib/site";
+import { DEVELOPMENT_FEATURE_GROUPS, FEATURES, LAUNCH_FEATURE_GROUPS, LAUNCH_LABEL, type Category, type FeatureGroup } from "@/lib/site";
 
 export const metadata: Metadata = { title: "Features" };
 
@@ -14,11 +14,48 @@ const CATEGORY_PILL: Record<Category, { cls: string; label: string }> = {
   ai: { cls: "pill-violet", label: "Assistant" },
 };
 
-const STATE_PILL = {
-  done: { cls: "pill-mint", label: "Live" },
-  next: { cls: "pill-blue", label: "Next" },
-  planned: { cls: "pill-gold", label: "Planned" },
-} as const;
+/** One status block (launch or in development): a heading row, then each group as a card. */
+function FeatureStatus({
+  id,
+  title,
+  pill,
+  mark,
+  groups,
+  columns = 3,
+}: {
+  id: string;
+  title: string;
+  pill: { cls: string; label: string };
+  mark: "is-live" | "is-dev";
+  groups: FeatureGroup[];
+  /** Most columns on wide screens; groups wrap to fewer columns as space runs out. */
+  columns?: number;
+}) {
+  return (
+    <section className="feature-status" aria-labelledby={id}>
+      <div className="feature-status-head">
+        <h3 id={id}>{title}</h3>
+        <span className={`pill ${pill.cls}`}>{pill.label}</span>
+      </div>
+      <div className="feature-groups" style={{ columnCount: columns }}>
+        {groups.map((g) => (
+          <div className="card feature-group" key={g.title}>
+            <h4 className="eyebrow feature-group-title">{g.title}</h4>
+            <ul className="feature-list">
+              {g.features.map((f) => (
+                <li className="feature-item" key={f.title}>
+                  <span className={`feature-item-mark ${mark}`} aria-hidden />
+                  <h5>{f.title}</h5>
+                  <p>{f.body}</p>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
 
 export default function FeaturesPage() {
   return (
@@ -64,25 +101,26 @@ export default function FeaturesPage() {
 
       <section className="section">
         <div className="container">
-          <p className="eyebrow">02 · Milestones</p>
-          <h2>Roadmap</h2>
-          <p className="lede">Where we are, and where we are headed next.</p>
-          <div className="card timeline" style={{ marginTop: 32 }}>
-            {MILESTONES.map((m) => (
-              <div className="milestone" key={m.title}>
-                <div className="milestone-when">{m.when}</div>
-                <div className="milestone-track">
-                  <span className={`milestone-dot ${m.state === "done" ? "is-done" : m.state === "next" ? "is-next" : ""}`} />
-                </div>
-                <div className="milestone-body">
-                  <h3>
-                    {m.title} <span className={`pill ${STATE_PILL[m.state].cls}`}>{STATE_PILL[m.state].label}</span>
-                  </h3>
-                  <p>{m.body}</p>
-                </div>
-              </div>
-            ))}
-          </div>
+          <p className="eyebrow">02 · Features</p>
+          <h2>What ships, and what is next</h2>
+          <p className="lede">
+            The features live on launch day, {LAUNCH_LABEL}, and the ones we are building after that.
+          </p>
+          <FeatureStatus
+            id="launch-features"
+            title="Launch features"
+            pill={{ cls: "pill-mint", label: "Live at launch" }}
+            mark="is-live"
+            groups={LAUNCH_FEATURE_GROUPS}
+          />
+          <FeatureStatus
+            id="development-features"
+            title="In development"
+            pill={{ cls: "pill-blue", label: "Coming after launch" }}
+            mark="is-dev"
+            groups={DEVELOPMENT_FEATURE_GROUPS}
+            columns={2}
+          />
 
           <div className="grid grid-2" style={{ marginTop: 48, alignItems: "center" }}>
             <ul className="bullets">

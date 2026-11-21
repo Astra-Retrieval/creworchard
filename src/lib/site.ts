@@ -170,50 +170,115 @@ export const FEATURES: Feature[] = [
   },
 ];
 
-export type MilestoneState = "done" | "next" | "planned";
-
-export interface Milestone {
-  when: string;
+export interface ProductFeature {
   title: string;
   body: string;
-  state: MilestoneState;
 }
 
-export const MILESTONES: Milestone[] = [
+export interface FeatureGroup {
+  title: string;
+  features: ProductFeature[];
+}
+
+/**
+ * What is in Crew Orchard on launch day (LAUNCH_LABEL), grouped by area.
+ * Where a feature also has a bigger version planned, the basic version is
+ * here and the bigger one is in DEVELOPMENT_FEATURE_GROUPS.
+ */
+export const LAUNCH_FEATURE_GROUPS: FeatureGroup[] = [
   {
-    when: "Nov 2026",
-    title: "Waitlist and early bird open",
-    body: "Reserve a seat at the lifetime early-bird price or join the waitlist for a launch code.",
-    state: "done",
+    title: "Projects and teams",
+    features: [
+      { title: "Multiple projects", body: "Run several projects in one organization, each with its own roles and people." },
+      { title: "Project hierarchy", body: "Break a project into sub-systems and sub-sub-systems, each with its own space." },
+      { title: "Project canvas", body: "Map your sub-systems and the integrations between them on one interactive canvas." },
+      { title: "Integration stages", body: "Add stages to each integration to track how sub-systems come together." },
+      { title: "Roles on every sub-system", body: "Assign people to each sub-system and integration with their role, and add people to existing ones at any time." },
+      { title: "Organization roles and seats", body: "Owners, admins, and members, with simple per-seat pricing." },
+      { title: "Team meeting scheduling", body: "Schedule meetings between the teams working on each sub-system and integration." },
+    ],
   },
   {
-    when: "Dec 2026",
-    title: "Private beta with early-bird crews",
-    body: "Early-bird members get first access and help shape what ships.",
-    state: "next",
+    title: "Documents and files",
+    features: [
+      { title: "Project drive", body: "One drive for everything in the project, plus a dedicated space for each sub-system and sub-assembly." },
+      { title: "Document hub", body: "A single, organized home for project documents, with dedicated spaces for big ones like electrical and the BoM." },
+      { title: "File management", body: "Upload Word documents, images, and other files, and keep them organized in folders." },
+      { title: "Built-in word processor", body: "Write specs, notes, and decisions with autosave and images placed right in the document." },
+      { title: "Built-in spreadsheets", body: "Spreadsheets with autosave that live beside your documents." },
+      { title: "Document tracking", body: "Follow every document across the project, with a timeline of each change and any version one click from restore." },
+      { title: "Linked documents", body: "Changes to a sub-system's documents flow through to the overall project documents." },
+      { title: "Export and delete", body: "Export documents to share outside Crew Orchard, and delete the ones you no longer need." },
+      { title: "Templates", body: "Save templates and apply a set template to a whole project or a single sub-system." },
+    ],
   },
   {
-    when: "Jan 1, 2027",
-    title: "Crew Orchard 1.0 launches",
-    body: "Project workspaces, crew sharing, and full history go live. Early-bird billing begins and waitlist codes go out.",
-    state: "planned",
+    title: "BoM and budget",
+    features: [
+      { title: "Bills of materials", body: "Every part with its supplier, part number, link, quantity, cost, and the other details you need." },
+      { title: "Sub-assembly to project BoM", body: "Each sub-assembly's BoM rolls up into the project BoM, and the same for electrical." },
+      { title: "Budgeting", body: "Set budgets for the project and its sub-systems." },
+    ],
   },
   {
-    when: "Q2 2027",
-    title: "Integrations and public API",
-    body: "Connect the tools you already use and build on Crew Orchard directly.",
-    state: "planned",
+    title: "Requirements and to-dos",
+    features: [
+      { title: "Requirements", body: "Requirements documents for the whole project and for each sub-assembly." },
+      { title: "Constraints", body: "A constraints document for the project and each sub-system." },
+      { title: "Requirement-linked to-dos", body: "Break requirements into to-dos, tie each one to its requirement, and tick it off when it is done." },
+      { title: "Project and team to-do lists", body: "One overall to-do list, plus a list for each sub-system and integration." },
+      { title: "Assignees", body: "Assign people to every to-do item." },
+      { title: "Board views", body: "See to-dos as a list or on a board." },
+      { title: "Progress tracker", body: "A running tracker of what is done and what is left." },
+    ],
   },
   {
-    when: "Q3 2027",
-    title: "Automations and assistant",
-    body: "Background automations and an assistant that answers questions from your project data.",
-    state: "planned",
+    title: "Your say in what is next",
+    features: [
+      { title: "Feature requests", body: "Send a feature request straight from your user settings." },
+      { title: "In-app roadmap", body: "See the features we are building without leaving the app." },
+    ],
+  },
+];
+
+/** What we are building after launch, grouped by area. No dates: these are plans, not promises. */
+export const DEVELOPMENT_FEATURE_GROUPS: FeatureGroup[] = [
+  {
+    title: "Connected tools",
+    features: [
+      { title: "Calendar plugins", body: "Connect your calendars to schedule meetings between people and teams." },
+      { title: "Availability", body: "See when people are busy before you book a meeting." },
+      { title: "Slack and email plugins", body: "Pull in more project data from Slack and email." },
+      { title: "CAD integration", body: "Changes made in CAD show everything they affect across the project, from integrations and requirements to the BoM." },
+    ],
   },
   {
-    when: "Q4 2027",
-    title: "Enterprise controls",
-    body: "Single sign-on, audit exports, and admin controls for larger teams.",
-    state: "planned",
+    title: "Engineering workflow",
+    features: [
+      { title: "Deeper hierarchies", body: "Nest sub-systems as many levels deep as your design needs." },
+      { title: "Design reviews and sign-offs", body: "Run design reviews and collect sign-offs inside the project." },
+      { title: "Change impact tracking", body: "See how each change affects requirements and to-dos." },
+      { title: "Constraint conflicts", body: "Get flagged when a change conflicts with a constraint." },
+      { title: "Software development tracking", body: "Track software work alongside the hardware." },
+    ],
+  },
+  {
+    title: "Planning and cost",
+    features: [
+      { title: "Gantt charts", body: "A Gantt chart for each sub-system and for the overall project." },
+      { title: "Development cost tracker", body: "Track what development is costing as you go." },
+      { title: "Cost savings", body: "Find where cost savings can be made across the project." },
+      { title: "Native parts purchasing", body: "Buy parts straight from your BoM." },
+    ],
+  },
+  {
+    title: "Management and experience",
+    features: [
+      { title: "Management tools", body: "Tools for leads and managers to run their teams and projects." },
+      { title: "Personal views", body: "Different views of to-dos, including one for just your own assignments." },
+      { title: "Delete anything", body: "Delete sub-systems, integrations, to-dos, and any other item, not just documents." },
+      { title: "Profile pictures", body: "Profile pictures and icons for everyone on your crew." },
+      { title: "Experience upgrades", body: "Improvements to the app, shaped by your feedback." },
+    ],
   },
 ];

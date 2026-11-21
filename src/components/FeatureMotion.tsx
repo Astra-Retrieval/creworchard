@@ -1,8 +1,8 @@
 /**
  * Three small animated line-art panels for the Features page, sitting between
- * the feature intentions and the roadmap. Each one acts out a feature:
- * scattered pieces flowing into one home, a version line you can roll back
- * along, and automations orbiting the backend. Pure SVG + CSS (no client JS),
+ * the feature intentions and the launch and in-development feature lists.
+ * Each one acts out a feature: scattered pieces flowing into one home, a
+ * version line you can roll back along, and automations orbiting the backend. Pure SVG + CSS (no client JS),
  * drawn in the same palette as StackArt. Motion is switched off by the global
  * prefers-reduced-motion rule, and every panel reads correctly at rest.
  */
