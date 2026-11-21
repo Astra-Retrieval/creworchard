@@ -651,8 +651,9 @@ td.num { font-family: var(--font-data); font-variant-numeric: tabular-nums; }
 .motion-card figcaption { padding: 0 8px; display: grid; gap: 6px; }
 .motion-art { width: 100%; height: auto; display: block; }
 .motion-art .motion-dash { animation: dash 10s linear infinite; }
-.motion-art .motion-dash-rev { animation: dash-rev 8s linear infinite; }
-@keyframes dash-rev { to { stroke-dashoffset: 400; } }
+/* The roll-back arc is drawn from NOW back to v2, so dashes flowing forward
+   along the path (negative offset) read as travelling back in time. */
+.motion-art .motion-dash-back { animation: dash 8s linear infinite; }
 .motion-art .motion-pulse { transform-origin: center; transform-box: fill-box; animation: pulse 2.6s ease-out infinite; }
 
 /* Packets and satellites ride CSS motion paths in SVG user units. */

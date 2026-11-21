@@ -68,7 +68,7 @@ function HistoryArt() {
     <svg className="motion-art" viewBox="0 0 320 200" fill="none" role="img" aria-label="A version history line with commits lighting up in turn and a roll-back arc to an earlier version">
       <path d={`M${VERSIONS[0]} 100H${HEAD}`} stroke={S} strokeWidth="2" />
       {/* Roll-back arc, dashes running backwards in time */}
-      <path d={ROLLBACK} stroke={P} strokeWidth="2" strokeDasharray="4 6" className="motion-dash-rev" />
+      <path d={ROLLBACK} stroke={P} strokeWidth="2" strokeDasharray="4 6" className="motion-dash-back" />
       <path d="M98 78l6 10 10-5" stroke={P} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
       <text x="194" y="36" textAnchor="middle" {...label}>ROLL BACK</text>
       {VERSIONS.map((x, i) => (
