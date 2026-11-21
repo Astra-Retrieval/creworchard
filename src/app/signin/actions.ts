@@ -3,6 +3,8 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured, NOT_CONFIGURED_MESSAGE } from "@/lib/env";
+import { decideProductAccess, getProductAccessMode } from "@/lib/product-access";
+import type { AccessProfile } from "@/lib/product-access-rules";
 import type { FormState } from "@/app/waitlist/actions";
 
 export async function signIn(_prev: FormState, fd: FormData): Promise<FormState> {
@@ -20,8 +22,15 @@ export async function signIn(_prev: FormState, fd: FormData): Promise<FormState>
     return { status: "error", message: msg };
   }
 
-  const { data: profile } = await supabase.from("profiles").select("role").eq("id", data.user.id).maybeSingle();
-  redirect(profile?.role === "admin" ? "/admin" : "/account");
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("role, is_tester, subscription_status")
+    .eq("id", data.user.id)
+    .maybeSingle<AccessProfile>();
+  // Anyone who can enter the product lands on their organization dashboard.
+  // Everyone else (members waiting for launch) goes to their account page.
+  if (decideProductAccess(profile, true, await getProductAccessMode()).allowed) redirect("/app");
+  redirect("/account");
 }
 
 export async function signOut() {

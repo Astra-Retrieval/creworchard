@@ -1,37 +1,63 @@
-import { getSession } from "@/lib/auth";
+import Link from "next/link";
+import { redirect } from "next/navigation";
 import { firstNameOf } from "@/lib/names";
+import { listMyOrganizations, requireProductUser } from "@/lib/orgs";
+import { NameForm } from "@/components/workspace/NameForm";
+import { createOrganization } from "./actions";
 
 /**
- * The product's home screen. This is the starting point to build Crew Orchard
- * on: anything here is only visible to people the /app layout lets in.
+ * Where signing in lands. It sends you straight to your organization's
+ * dashboard; if you belong to several you choose one, and if you belong to
+ * none you create the first.
  */
 export default async function ProductHome() {
-  const session = await getSession();
-  const firstName = firstNameOf(session?.profile?.full_name);
+  const { session } = await requireProductUser();
+  const organizations = await listMyOrganizations();
+  if (organizations.length === 1) redirect(`/app/org/${organizations[0].id}`);
+
+  const firstName = firstNameOf(session.profile?.full_name);
+
+  if (organizations.length === 0) {
+    return (
+      <section className="section-tight">
+        <div className="container stack" style={{ maxWidth: 640 }}>
+          <div>
+            <p className="eyebrow">Crew Orchard · Get started</p>
+            <h1>{firstName ? `Welcome, ${firstName}` : "Welcome"}</h1>
+            <p className="lede">
+              Everything in Crew Orchard lives inside an organization. Create yours to start your first
+              project. If your team already has one, ask an admin there to add you instead.
+            </p>
+          </div>
+          <div className="card">
+            <NameForm
+              action={createOrganization}
+              label="Organization name"
+              defaultValue={session.profile?.organization ?? ""}
+              submitLabel="Create organization"
+              pendingLabel="Creating…"
+              hint="You'll own it, with every permission and its seats to assign."
+            />
+          </div>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className="section-tight">
       <div className="container stack">
         <div>
-          <p className="eyebrow">Crew Orchard · Workspace</p>
-          <h1>{firstName ? `Welcome, ${firstName}` : "Welcome"}</h1>
-          <p className="lede">
-            This is the Crew Orchard workspace. The product gets built here, and everything you create
-            is saved to your account just as it will be for members.
-          </p>
+          <p className="eyebrow">Crew Orchard · Organizations</p>
+          <h1>Choose an organization</h1>
         </div>
-
         <div className="grid grid-3">
-          {[
-            { label: "01 · Projects", title: "Your projects", body: "Nothing here yet. Projects will appear as the product is built." },
-            { label: "02 · Crew", title: "Your crew", body: "Invite teammates to seats once crew management is built." },
-            { label: "03 · Integrations", title: "Connected tools", body: "Connect the tools you already use. Coming as the roadmap lands." },
-          ].map((c) => (
-            <article key={c.title} className="card">
-              <p className="eyebrow">{c.label}</p>
-              <h3>{c.title}</h3>
-              <p>{c.body}</p>
-            </article>
+          {organizations.map((org) => (
+            <Link key={org.id} href={`/app/org/${org.id}`} className="card card-link">
+              <p className="eyebrow">{org.role === "owner" ? "Owner" : org.role === "admin" ? "Admin" : "Member"}</p>
+              <h3>{org.name}</h3>
+              <p>Open dashboard →</p>
+            </Link>
           ))}
         </div>
       </div>

@@ -15,6 +15,9 @@ Built with Next.js 16 (App Router), Supabase (auth and database), and Stripe (su
 | `/signin` | Email and password sign-in for early-bird members |
 | `/account` | Member dashboard: launch countdown, crew pass, telemetry, sign out, close account |
 | `/admin` | Admins only: every early-bird member and waitlist entry, stats, and CSV export |
+| `/app` | The product. Sends you to your organization (or asks you to create one) |
+| `/app/org/[orgId]` | Organization dashboard: projects, members, and permissions |
+| `/app/org/[orgId]/project/[projectId]` | A project: the canvas, plus Documents, Requirements, and Constraints tabs |
 
 ## Editing copy
 
@@ -102,7 +105,44 @@ The product lives under `/app`, behind one access rule (`src/lib/product-access-
 
 The **Product access** card on `/admin` sets the mode: **Automatic** (the default) opens at launch, 2027-01-01 00:00 UTC. **Open now** and **Keep closed** are manual overrides. The mode is stored in the `app_settings` table, and the tester flag is `profiles.is_tester`. Run `npm test` to check the rule against every case.
 
+## Organizations and projects
+
+Signing in takes anyone with product access to `/app`, which opens their organization dashboard. Someone with no organization creates one and owns it.
+
+**Organization** (`src/lib/org-rules.ts`)
+
+- One **owner** (whoever created it), who can do everything. **Admins** can do everything except change the owner or other admins. **Members** can do only what they've been granted; today the one grantable permission is **Create projects** (add more to `ORG_PERMISSIONS`).
+- **Seats**: everyone in the organization takes a seat. The owner and admins assign and unassign seats on the dashboard. The limit is the owner's plan (`profiles.seats`); it is unlimited while the owner is a Crew Orchard site admin or tester.
+- The owner and admins see every project. Everyone else sees only the projects they've been added to.
+
+**Project** (`src/lib/project-rules.ts`)
+
+| Role | Can |
+| --- | --- |
+| Project lead | Add people from the organization, set roles, and everything below |
+| Systems engineer | Create sub-systems and integrations, and everything below |
+| Contributor | Edit documents and BoMs, assign people to sub-systems, pin documents |
+| Viewer | Read only |
+
+Whoever creates a project leads it. The organization's owner and admins act as a lead on every project. Each project has its own team, so one person can hold a different role on each.
+
+**Project workspace** (`src/components/workspace/`)
+
+- Tabs down the left (the list is `PROJECT_SECTIONS`): Canvas, Team, Documents, Bill of materials, Requirements, and Constraints. The last two are empty for now.
+- **Canvas**: drag anywhere (or use the arrow keys) to move around. Sub-systems are boxes in a random brand color with a name and a short note. An integration connects two or more sub-systems: a smaller grey box joined to each by a grey line. The toggle at the top left switches lines between square (right angles only) and curved, and is remembered per device.
+- **Selecting**: pressing a sub-system brightens it and turns its lines and integration boxes blue. Pressing an integration turns it and its lines blue and brightens its sub-systems. Either opens a panel on the right: people and their contact details (for an integration, grouped by sub-system), documents, and for a sub-system its bill of materials and any documents pinned to its sidebar.
+- **Documents**: each project has a project-wide drive, and each sub-system and integration has its own. Documents are plain text for now and are edited in place.
+- **Bills of materials**: each sub-system has a BoM; the Bill of materials tab adds them up into the project BoM.
+- The **New** button (top right and bottom left) is shown to leads and systems engineers. The bottom-right row has user settings, feature requests, questions, and the organization dashboard. Feature requests and questions are saved to `contact_messages` and show up under Messages on `/admin`.
+
+**Security**: these tables are server-only (RLS on, no policies). Every page and server action goes through the guards in `src/lib/orgs.ts`, which answer "page not found" to anyone who isn't allowed to see the organization or project. The hierarchy is also enforced by foreign keys: a project member must be in the organization, and a sub-system or integration member must be on the project, so unassigning a seat removes that person everywhere below.
+
+Apply the migrations in `supabase/migrations/` in order before deploying.
+
 ## Data model
 
 - `waitlist`: name, email (unique, case-insensitive), organization, use case, expected seats, notes, and an `invite_code` column to fill at launch. Server-only (RLS on, no policies).
 - `profiles`: one row per auth user, created by a trigger. Holds role (`member` or `admin`), seats, a sequential member number, and Stripe IDs and status mirrored by the webhook. Members can read only their own row; all writes go through the server.
+- `organizations`, `organization_members` (role and granted permissions), `projects`, and `project_members` (project role).
+- `subsystems` (note, color, canvas position), `subsystem_members`, `integrations`, `integration_subsystems`, and `integration_members`.
+- `documents` (project, sub-system, or integration drive), `subsystem_pins`, and `bom_items`. All server-only.
