@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { PROJECT_SECTIONS } from "@/lib/org-rules";
+import { PROJECT_SECTIONS } from "@/lib/project-rules";
 
 /** The tabs down the left of a project: the canvas first, then each section. */
 export function ProjectTabs({ projectHref }: { projectHref: string }) {

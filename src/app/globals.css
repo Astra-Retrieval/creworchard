@@ -12,6 +12,8 @@
   --starlight: #eef1f8;
   --mint: #7ee0b2;
   --path: #46527a; /* dashed orbits and planned trajectories */
+  --line-grey: #646b7c; /* integration lines and boxes on the canvas */
+  --line-grey-text: #a3a9b8;
 
   /* Accent palette (sparingly) */
   --orbit-blue: #86a9f0;
@@ -702,52 +704,95 @@ td.num { font-family: var(--font-data); font-variant-numeric: tabular-nums; }
 
 .ws-main { position: relative; min-width: 0; min-height: 0; overflow: auto; }
 
-/* Canvas: a dotted grid that scrolls in both directions. */
-.ws-canvas { position: absolute; inset: 0; }
-.ws-canvas-scroll {
+/* Canvas: a dotted grid you drag to move around. */
+.ws-canvas { position: absolute; inset: 0; overflow: hidden; }
+.ws-viewport {
   position: absolute;
   inset: 0;
-  overflow: auto;
+  overflow: hidden;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
   background-color: var(--void);
   background-image: radial-gradient(circle, color-mix(in srgb, var(--path) 70%, transparent) 1px, transparent 1.5px);
   background-size: 28px 28px;
-  background-attachment: local;
 }
-.ws-canvas-surface { position: relative; width: 100%; height: 100%; }
-.ws-edges { position: absolute; left: 0; top: 0; pointer-events: none; overflow: visible; }
-.ws-edges line { stroke: var(--path); stroke-width: 2; stroke-dasharray: 7 6; stroke-linecap: round; }
-.ws-edge-label {
-  position: absolute;
-  transform: translate(-50%, -50%);
-  padding: 3px 10px;
-  border: 1.5px solid var(--path);
-  border-radius: 999px;
-  background: var(--void);
-  font-family: var(--font-mono);
-  font-size: 11px;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--orbit-blue);
-  white-space: nowrap;
-  max-width: 108px; /* fits the gap between neighbouring boxes; the full name is in the tooltip */
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.ws-nodes { list-style: none; margin: 0; padding: 0; }
+.ws-viewport.is-dragging { cursor: grabbing; }
+.ws-viewport:focus-visible { outline-offset: -4px; border-radius: 0; }
+.ws-surface { position: absolute; left: 0; top: 0; width: 0; height: 0; will-change: transform; }
+
+/* Integration lines: grey, and blue when they come off whatever is selected. */
+.ws-edges { position: absolute; left: 0; top: 0; overflow: visible; pointer-events: none; }
+.ws-edges path { fill: none; stroke: var(--line-grey); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.ws-edges path.is-blue { stroke: var(--orbit-blue); stroke-width: 2.5; }
+
+/* Sub-system colors, from the brand palette. */
+.ws-color-mint { --node-color: var(--mint); }
+.ws-color-blue { --node-color: var(--orbit-blue); }
+.ws-color-violet { --node-color: var(--nebula-violet); }
+.ws-color-gold { --node-color: var(--solar-gold); }
+.ws-color-coral { --node-color: var(--flare-coral); }
+.ws-dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; background: var(--node-color); margin-right: 4px; vertical-align: baseline; }
+
+/* Sub-system box. Quiet by default; brighter when selected or attached to the selected integration. */
 .ws-node {
   position: absolute;
   display: flex;
   flex-direction: column;
   justify-content: center;
-  gap: 6px;
-  padding: 0 18px;
-  background: var(--card);
-  border: 2px solid var(--hull);
-  border-top-color: var(--mint);
-  border-radius: var(--radius-sm);
+  gap: 5px;
+  padding: 0 16px;
+  text-align: left;
+  font: inherit;
+  color: var(--starlight);
+  cursor: pointer;
+  background: color-mix(in srgb, var(--node-color) 9%, var(--card));
+  border: 2px solid color-mix(in srgb, var(--node-color) 50%, var(--hull));
+  border-radius: 10px;
+  transition: background 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
 }
-.ws-node-kind { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--mint); }
-.ws-node-name { font-weight: 600; font-size: 16px; line-height: 1.25; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ws-node:hover { border-color: color-mix(in srgb, var(--node-color) 80%, var(--hull)); }
+.ws-node.is-lit {
+  background: color-mix(in srgb, var(--node-color) 30%, var(--card));
+  border-color: var(--node-color);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--node-color) 22%, transparent), 0 0 32px color-mix(in srgb, var(--node-color) 38%, transparent);
+}
+.ws-node-name { font-weight: 600; font-size: 16px; line-height: 1.25; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+.ws-node-note {
+  font-size: 12.5px;
+  line-height: 1.35;
+  color: var(--dust);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.ws-node.is-lit .ws-node-note { color: var(--starlight); }
+
+/* Integration box: smaller, grey, sitting where its lines meet. */
+.ws-link {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  max-width: 112px;
+  padding: 5px 11px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--line-grey-text);
+  background: var(--void);
+  border: 2px solid var(--line-grey);
+  border-radius: 7px;
+  cursor: pointer;
+  transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+}
+.ws-link:hover { color: var(--starlight); }
+.ws-link.is-blue { color: var(--orbit-blue); border-color: var(--orbit-blue); background: color-mix(in srgb, var(--orbit-blue) 14%, var(--void)); }
+
 .ws-canvas-empty {
   position: absolute;
   left: 50%;
@@ -765,6 +810,8 @@ td.num { font-family: var(--font-data); font-variant-numeric: tabular-nums; }
 /* The "New" button, top right and bottom left of the canvas. */
 .ws-corner { position: absolute; z-index: 2; }
 .ws-corner-top-right { top: 18px; right: 18px; }
+.ws-corner-top-left { top: 18px; left: 18px; }
+.ws-canvas.has-panel .ws-corner-top-right { right: 392px; }
 .ws-corner-bottom-left { bottom: 18px; left: 18px; }
 .ws-create { padding: 11px 20px; font-size: 14px; gap: 8px; box-shadow: 0 6px 24px rgb(0 0 0 / 0.45); }
 
@@ -841,6 +888,107 @@ td.num { font-family: var(--font-data); font-variant-numeric: tabular-nums; }
 }
 .ws-icon-btn:hover { color: var(--starlight); border-color: var(--dust); }
 
+/* Line style toggle, top left of the canvas. */
+.ws-toggle { display: inline-flex; gap: 2px; padding: 3px; background: var(--card); border: 2px solid var(--hull); border-radius: 999px; box-shadow: 0 6px 24px rgb(0 0 0 / 0.45); }
+.ws-toggle button { display: inline-grid; place-items: center; width: 40px; height: 30px; border: 0; border-radius: 999px; background: transparent; color: var(--dust); cursor: pointer; }
+.ws-toggle button:hover { color: var(--starlight); }
+.ws-toggle button[aria-pressed="true"] { background: var(--hull); color: var(--mint); }
+
+/* The bar on the right for the selected sub-system or integration. */
+.ws-panel {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  bottom: 84px;
+  z-index: 4;
+  width: 356px;
+  max-width: calc(100% - 36px);
+  display: flex;
+  flex-direction: column;
+  background: var(--card);
+  border: 2px solid var(--hull);
+  border-radius: var(--radius);
+  box-shadow: 0 12px 48px rgb(0 0 0 / 0.5);
+  overflow: hidden;
+}
+.ws-panel-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; padding: 20px 20px 16px; border-bottom: 1px solid var(--hull); }
+.ws-panel-kind { margin: 0 0 6px; font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--dust); }
+.ws-panel-title { margin: 0; font-family: var(--font-body); font-weight: 600; font-size: 20px; line-height: 1.25; letter-spacing: 0; text-transform: none; overflow-wrap: anywhere; }
+.ws-panel-note { margin: 8px 0 0; font-size: 14px; line-height: 1.45; color: var(--dust); overflow-wrap: anywhere; }
+.ws-panel-items { display: grid; gap: 8px; align-content: start; padding: 16px; overflow-y: auto; flex: 1; }
+.ws-panel-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 12px 14px;
+  font: inherit;
+  font-weight: 500;
+  font-size: 15px;
+  text-align: left;
+  color: var(--starlight);
+  background: var(--navy);
+  border: 2px solid var(--hull);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: border-color 0.15s ease;
+  min-width: 0;
+}
+.ws-panel-item > span:first-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ws-panel-item:hover, .ws-panel-item[aria-expanded="true"] { border-color: var(--orbit-blue); }
+.ws-panel-count { font-family: var(--font-data); font-size: 13px; color: var(--dust); }
+.ws-panel-section { padding: 4px 4px 10px; }
+.ws-panel-group + .ws-panel-group { margin-top: 14px; }
+.ws-panel-group-title { margin: 0 0 6px; font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--dust); }
+.ws-panel-pinned { display: flex; align-items: center; gap: 8px; }
+.ws-panel-pinned .ws-panel-item { flex: 1; }
+.ws-panel-add { margin-top: 8px; padding-top: 14px; border-top: 1px solid var(--hull); }
+.ws-panel select { font-size: 14px; padding: 10px 36px 10px 12px; }
+
+.ws-text-btn { border: 0; background: transparent; padding: 4px 6px; font: inherit; font-size: 13px; color: var(--dust); cursor: pointer; text-decoration: underline; text-underline-offset: 3px; flex-shrink: 0; }
+.ws-text-btn:hover { color: var(--flare-coral); }
+.ws-text-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* People lists. */
+.ws-contacts { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+.ws-contacts li { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 9px 0; border-bottom: 1px dashed var(--hull); }
+.ws-contacts li:last-child { border-bottom: 0; }
+.ws-contact-name { font-weight: 600; font-size: 14.5px; overflow-wrap: anywhere; }
+.ws-contact-mail { font-size: 13.5px; color: var(--mint); overflow-wrap: anywhere; }
+.ws-contact-role { font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--dust); margin-top: 2px; }
+.ws-checklist { list-style: none; margin: 0; padding: 10px 12px; display: grid; gap: 10px; max-height: 168px; overflow-y: auto; border: 2px solid var(--hull); border-radius: var(--radius-sm); background: var(--void); }
+
+/* Document manager. */
+.ws-modal-wide { width: min(94vw, 980px); }
+.ws-docs { display: grid; grid-template-columns: 250px minmax(0, 1fr); gap: 20px; align-items: start; }
+.ws-docs-list ul { list-style: none; margin: 0 0 12px; padding: 0; display: grid; gap: 6px; max-height: 46vh; overflow-y: auto; }
+.ws-doc-row { display: grid; gap: 3px; width: 100%; padding: 10px 12px; text-align: left; font: inherit; color: var(--starlight); background: var(--navy); border: 2px solid var(--hull); border-radius: var(--radius-sm); cursor: pointer; }
+.ws-doc-row:hover, .ws-doc-row[aria-current="true"] { border-color: var(--mint); }
+.ws-doc-title { font-weight: 600; font-size: 14.5px; overflow-wrap: anywhere; }
+.ws-doc-meta { font-size: 12px; color: var(--dust); }
+.ws-docs-new { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; }
+.ws-docs-new input { font-size: 14px; padding: 10px 12px; }
+.ws-docs-editor { display: grid; gap: 12px; min-width: 0; }
+.ws-doc-title-input { font-weight: 600; font-size: 20px !important; }
+.ws-doc-body { min-height: min(46vh, 460px); font-size: 15px; line-height: 1.65; resize: vertical; }
+.ws-docs-foot { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+
+/* Bills of materials. */
+.ws-bom-add { display: grid; grid-template-columns: 130px minmax(0, 1fr) 90px 130px auto; gap: 10px; align-items: end; }
+.ws-bom-add input { font-size: 14px; padding: 10px 12px; }
+.ws-bom-total-label { text-align: right; font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--dust); }
+.ws-bom-total { font-weight: 800; color: var(--mint); }
+tfoot td { border-top: 2px solid var(--hull); border-bottom: 0; }
+.ws-bom-group td { background: var(--navy); font-weight: 600; }
+
+/* Section pages that hold tables or the document manager. */
+.ws-section-wide { max-width: 1180px; }
+.ws-roles { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 10px; margin-bottom: 20px; }
+.ws-roles div { display: grid; gap: 2px; padding: 12px 14px; border: 1.5px solid var(--hull); border-radius: var(--radius-sm); font-size: 13.5px; }
+.ws-roles span { color: var(--dust); }
+.ws-team-add { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr) auto; gap: 12px; align-items: end; }
+
 /* Narrow screens: the tabs move to a strip along the top, and the
    shortcut row shows icons only. The bottom-left "New" button sits above it. */
 @media (max-width: 760px) {
@@ -856,4 +1004,11 @@ td.num { font-family: var(--font-data); font-variant-numeric: tabular-nums; }
   .ws-dock-btn span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0, 0, 0, 0); }
   .ws-corner-bottom-left { bottom: 18px; left: 12px; }
   .ws-dock { right: 12px; }
+  .ws-canvas.has-panel .ws-corner-top-right { right: 12px; }
+  .ws-panel { top: auto; left: 12px; right: 12px; bottom: 76px; width: auto; max-width: none; max-height: 58%; }
+  .ws-docs { grid-template-columns: 1fr; }
+  .ws-docs-list ul { max-height: 22vh; }
+  .ws-doc-body { min-height: 32vh; }
+  .ws-bom-add, .ws-team-add { grid-template-columns: 1fr 1fr; }
+  .ws-bom-add button, .ws-team-add button { grid-column: 1 / -1; }
 }

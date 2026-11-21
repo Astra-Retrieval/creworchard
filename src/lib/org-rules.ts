@@ -1,18 +1,22 @@
 /**
- * The pure rules for organizations and projects, with no database or framework
- * imports so they can be tested on their own (scripts/test-org-rules.ts).
+ * The pure rules for organizations, with no database or framework imports so
+ * they can be tested on their own (scripts/test-org-rules.ts).
  * src/lib/orgs.ts wraps them with the database.
  *
- *   Organization admins  have every permission, always
- *   Members              have only the permissions an admin has granted them
- *   Everyone else        has none
+ *   Owner    the one person who owns the organization and its seats; can do everything
+ *   Admins   can do everything except change the owner
+ *   Members  can do only what an owner or admin has granted them
+ *   Others   nothing
+ *
+ * Roles inside a project are separate: see project-rules.ts.
  */
 
-export type OrgRole = "admin" | "member";
+export type OrgRole = "owner" | "admin" | "member";
+export const ORG_ROLE_LABELS: Record<OrgRole, string> = { owner: "Owner", admin: "Admin", member: "Member" };
 
 /**
- * Every permission an organization admin can grant to a member. To add one,
- * add it here: the members table on the organization dashboard picks it up.
+ * Every permission that can be granted to a member. To add one, add it here:
+ * the members table on the organization dashboard picks it up.
  */
 export const ORG_PERMISSIONS = [
   { key: "projects.create", label: "Create projects" },
@@ -30,58 +34,55 @@ export interface OrgMembership {
   permissions: string[];
 }
 
-/** Admins can do everything; members only what they've been granted. */
+/** Owners and admins run the organization. */
+export function isOrgManager(member: Pick<OrgMembership, "role"> | null | undefined): boolean {
+  return member?.role === "owner" || member?.role === "admin";
+}
+
+/** Owners and admins can do everything; members only what they've been granted. */
 export function can(member: OrgMembership | null | undefined, permission: OrgPermission): boolean {
   if (!member) return false;
-  if (member.role === "admin") return true;
+  if (isOrgManager(member)) return true;
   return member.permissions.includes(permission);
 }
 
-/** Managing members and their permissions is for admins only; it can't be granted. */
-export function canManageMembers(member: OrgMembership | null | undefined): boolean {
-  return member?.role === "admin";
+/** Assigning seats, roles, and permissions is for the owner and admins; it can't be granted. */
+export function canManageMembers(member: Pick<OrgMembership, "role"> | null | undefined): boolean {
+  return isOrgManager(member);
 }
 
 /**
- * An organization must always keep one admin, or nobody could manage it.
- * True when changing `targetUserId` away from admin (demoting or removing
- * them) would leave none.
+ * Whether `actor` may change or remove `target`. Nobody can change the owner
+ * (so an organization always has one), and only the owner can change an admin.
  */
-export function wouldRemoveLastAdmin(
-  members: { user_id: string; role: OrgRole }[],
-  targetUserId: string,
+export function canChangeMember(
+  actor: Pick<OrgMembership, "role"> | null | undefined,
+  target: Pick<OrgMembership, "role">,
 ): boolean {
-  const admins = members.filter((m) => m.role === "admin");
-  return admins.length === 1 && admins[0].user_id === targetUserId;
-}
-
-/** The tabs down the left of a project. The canvas is the project's main page. */
-export const PROJECT_SECTIONS = [
-  { slug: "documents", label: "Documents", blurb: "Specifications, reports, and reference files for this project." },
-  { slug: "requirements", label: "Requirements", blurb: "What the system must do, traced to the sub-systems that satisfy it." },
-  { slug: "constraints", label: "Constraints", blurb: "The limits the design has to live within: mass, power, cost, schedule." },
-] as const;
-
-export type ProjectSectionSlug = (typeof PROJECT_SECTIONS)[number]["slug"];
-
-export function findProjectSection(slug: string) {
-  return PROJECT_SECTIONS.find((s) => s.slug === slug) ?? null;
+  if (!canManageMembers(actor)) return false;
+  if (target.role === "owner") return false;
+  if (target.role === "admin") return actor?.role === "owner";
+  return true;
 }
 
 /**
- * Where a new sub-system lands on the canvas: left to right, four to a row,
- * in the order they were created. Positions are saved, so boxes stay put once
- * dragging is built.
+ * Seats. Everyone in an organization, the owner included, takes one seat, and
+ * the organization has as many as its owner's plan (profiles.seats).
+ * A limit of null means unlimited.
  */
-export const NODE_WIDTH = 220;
-export const NODE_HEIGHT = 84;
-export function nextNodePosition(existingCount: number): { x: number; y: number } {
-  const col = existingCount % 4;
-  const row = Math.floor(existingCount / 4);
-  return { x: 96 + col * 340, y: 120 + row * 190 };
+export function seatsLeft(limit: number | null, used: number): number | null {
+  return limit === null ? null : Math.max(0, limit - used);
+}
+export function hasFreeSeat(limit: number | null, used: number): boolean {
+  return limit === null || used < limit;
 }
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 export function isUuid(value: unknown): value is string {
   return typeof value === "string" && UUID_RE.test(value);
+}
+/** A list of ids from a form or an action call: only valid, distinct uuids survive. */
+export function uuidList(value: unknown, max = 200): string[] {
+  if (!Array.isArray(value)) return [];
+  return [...new Set(value.filter(isUuid))].slice(0, max);
 }

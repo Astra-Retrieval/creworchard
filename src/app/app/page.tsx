@@ -36,7 +36,7 @@ export default async function ProductHome() {
               defaultValue={session.profile?.organization ?? ""}
               submitLabel="Create organization"
               pendingLabel="Creating…"
-              hint="You'll be its first admin, with every permission."
+              hint="You'll own it, with every permission and its seats to assign."
             />
           </div>
         </div>
@@ -54,7 +54,7 @@ export default async function ProductHome() {
         <div className="grid grid-3">
           {organizations.map((org) => (
             <Link key={org.id} href={`/app/org/${org.id}`} className="card card-link">
-              <p className="eyebrow">{org.role === "admin" ? "Admin" : "Member"}</p>
+              <p className="eyebrow">{org.role === "owner" ? "Owner" : org.role === "admin" ? "Admin" : "Member"}</p>
               <h3>{org.name}</h3>
               <p>Open dashboard →</p>
             </Link>
