@@ -453,45 +453,37 @@ select { appearance: none; background-image: linear-gradient(45deg, transparent 
 .bullets li { display: flex; gap: 12px; align-items: flex-start; }
 .bullets li svg { flex-shrink: 0; margin-top: 4px; }
 
-.feature-groups { margin-top: 32px; align-items: start; }
-.feature-group-head {
+.feature-status { margin-top: 48px; }
+.feature-status-head {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px 12px;
+  gap: 8px 14px;
   align-items: center;
-  justify-content: space-between;
-  padding-bottom: 18px;
-  margin-bottom: 4px;
-  border-bottom: 1px solid var(--hull);
+  margin-bottom: 20px;
 }
-.feature-group-head h3 { margin: 0; }
+.feature-status-head h3 { margin: 0; }
+/* Masonry-style columns so groups of different lengths pack without gaps. */
+.feature-groups { columns: 3 300px; column-gap: 20px; }
+.feature-group { break-inside: avoid; margin-bottom: 20px; }
+.feature-group-title { margin: 0 0 4px; }
 .feature-list { list-style: none; padding: 0; margin: 0; }
 .feature-item {
   display: grid;
-  grid-template-columns: 14px 1fr auto;
-  gap: 4px 16px;
-  padding: 18px 0;
+  grid-template-columns: 12px 1fr;
+  gap: 4px 14px;
+  padding: 14px 0;
   border-bottom: 1px solid color-mix(in srgb, var(--hull) 60%, transparent);
 }
 .feature-item:last-child { border-bottom: 0; padding-bottom: 0; }
 .feature-item-mark {
-  width: 14px; height: 14px; margin-top: 4px;
+  width: 12px; height: 12px; margin-top: 5px;
   border-radius: 50%;
   border: 2px solid var(--starlight);
 }
-.feature-item-mark.is-live { background: var(--mint); border-color: var(--mint); box-shadow: 0 0 0 5px color-mix(in srgb, var(--mint) 16%, transparent); }
+.feature-item-mark.is-live { background: var(--mint); border-color: var(--mint); box-shadow: 0 0 0 4px color-mix(in srgb, var(--mint) 16%, transparent); }
 .feature-item-mark.is-dev { border: 2px dashed var(--orbit-blue); }
-.feature-item h4 { margin: 0; font-family: var(--font-body); font-size: 16px; font-weight: 600; color: var(--starlight); }
-.feature-item p { grid-column: 2 / -1; margin: 0; color: var(--dust); }
-.feature-item-eta {
-  font-family: var(--font-mono);
-  font-size: 12px;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--dust);
-  white-space: nowrap;
-  padding-top: 3px;
-}
+.feature-item h5 { margin: 0; font-family: var(--font-body); font-size: 16px; font-weight: 600; letter-spacing: 0; text-transform: none; color: var(--starlight); }
+.feature-item p { grid-column: 2; margin: 0; color: var(--dust); font-size: 15px; }
 
 .disclaimer {
   border-left: 2px solid var(--solar-gold);

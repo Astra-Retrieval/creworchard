@@ -3,7 +3,7 @@ import Link from "next/link";
 import { AsteroidBullet } from "@/components/AsteroidBullet";
 import { FeatureMotion } from "@/components/FeatureMotion";
 import { StackArt } from "@/components/StackArt";
-import { DEVELOPMENT_FEATURES, FEATURES, LAUNCH_FEATURES, LAUNCH_LABEL, type Category } from "@/lib/site";
+import { DEVELOPMENT_FEATURE_GROUPS, FEATURES, LAUNCH_FEATURE_GROUPS, LAUNCH_LABEL, type Category, type FeatureGroup } from "@/lib/site";
 
 export const metadata: Metadata = { title: "Features" };
 
@@ -13,6 +13,49 @@ const CATEGORY_PILL: Record<Category, { cls: string; label: string }> = {
   team: { cls: "pill-violet", label: "Crew" },
   ai: { cls: "pill-violet", label: "Assistant" },
 };
+
+/** One status block (launch or in development): a heading row, then each group as a card. */
+function FeatureStatus({
+  id,
+  title,
+  pill,
+  mark,
+  groups,
+  columns = 3,
+}: {
+  id: string;
+  title: string;
+  pill: { cls: string; label: string };
+  mark: "is-live" | "is-dev";
+  groups: FeatureGroup[];
+  /** Most columns on wide screens; groups wrap to fewer columns as space runs out. */
+  columns?: number;
+}) {
+  return (
+    <section className="feature-status" aria-labelledby={id}>
+      <div className="feature-status-head">
+        <h3 id={id}>{title}</h3>
+        <span className={`pill ${pill.cls}`}>{pill.label}</span>
+      </div>
+      <div className="feature-groups" style={{ columnCount: columns }}>
+        {groups.map((g) => (
+          <div className="card feature-group" key={g.title}>
+            <h4 className="eyebrow feature-group-title">{g.title}</h4>
+            <ul className="feature-list">
+              {g.features.map((f) => (
+                <li className="feature-item" key={f.title}>
+                  <span className={`feature-item-mark ${mark}`} aria-hidden />
+                  <h5>{f.title}</h5>
+                  <p>{f.body}</p>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
 
 export default function FeaturesPage() {
   return (
@@ -63,40 +106,21 @@ export default function FeaturesPage() {
           <p className="lede">
             The features live on launch day, {LAUNCH_LABEL}, and the ones we are building after that.
           </p>
-          <div className="grid grid-2 feature-groups">
-            <section className="card" aria-labelledby="launch-features">
-              <div className="feature-group-head">
-                <h3 id="launch-features">Launch features</h3>
-                <span className="pill pill-mint">Live at launch</span>
-              </div>
-              <ul className="feature-list">
-                {LAUNCH_FEATURES.map((f) => (
-                  <li className="feature-item" key={f.title}>
-                    <span className="feature-item-mark is-live" aria-hidden />
-                    <h4>{f.title}</h4>
-                    <span />
-                    <p>{f.body}</p>
-                  </li>
-                ))}
-              </ul>
-            </section>
-            <section className="card" aria-labelledby="development-features">
-              <div className="feature-group-head">
-                <h3 id="development-features">In development</h3>
-                <span className="pill pill-blue">Coming after launch</span>
-              </div>
-              <ul className="feature-list">
-                {DEVELOPMENT_FEATURES.map((f) => (
-                  <li className="feature-item" key={f.title}>
-                    <span className="feature-item-mark is-dev" aria-hidden />
-                    <h4>{f.title}</h4>
-                    <span className="feature-item-eta">{f.eta ? <><span className="sr-only">Expected </span>{f.eta}</> : null}</span>
-                    <p>{f.body}</p>
-                  </li>
-                ))}
-              </ul>
-            </section>
-          </div>
+          <FeatureStatus
+            id="launch-features"
+            title="Launch features"
+            pill={{ cls: "pill-mint", label: "Live at launch" }}
+            mark="is-live"
+            groups={LAUNCH_FEATURE_GROUPS}
+          />
+          <FeatureStatus
+            id="development-features"
+            title="In development"
+            pill={{ cls: "pill-blue", label: "Coming after launch" }}
+            mark="is-dev"
+            groups={DEVELOPMENT_FEATURE_GROUPS}
+            columns={2}
+          />
 
           <div className="grid grid-2" style={{ marginTop: 48, alignItems: "center" }}>
             <ul className="bullets">
