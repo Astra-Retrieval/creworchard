@@ -645,6 +645,45 @@ td.num { font-family: var(--font-data); font-variant-numeric: tabular-nums; }
 .orbit-art .travel { animation: dash 14s linear infinite; }
 @keyframes dash { to { stroke-dashoffset: -400; } }
 
+/* ── Feature motion panels (Features page) ─────────────────── */
+
+.motion-card { margin: 0; padding: 16px 16px 22px; display: flex; flex-direction: column; gap: 14px; }
+.motion-card figcaption { padding: 0 8px; display: grid; gap: 6px; }
+.motion-art { width: 100%; height: auto; display: block; }
+.motion-art .motion-dash { animation: dash 10s linear infinite; }
+.motion-art .motion-dash-rev { animation: dash-rev 8s linear infinite; }
+@keyframes dash-rev { to { stroke-dashoffset: 400; } }
+.motion-art .motion-pulse { transform-origin: center; transform-box: fill-box; animation: pulse 2.6s ease-out infinite; }
+
+/* Packets and satellites ride CSS motion paths in SVG user units. */
+.motion-art .motion-packet,
+.motion-art .motion-sat {
+  transform-box: view-box;
+  transform-origin: 0 0;
+  offset-anchor: 0 0;
+  offset-rotate: 0deg;
+}
+.motion-art .motion-packet { animation: ride 2.7s cubic-bezier(.45,.05,.55,.95) infinite; }
+.motion-art .motion-sat-slow { animation: ride 12s linear infinite; }
+.motion-art .motion-sat-fast { animation: ride-rev 6s linear infinite; }
+@keyframes ride {
+  0% { offset-distance: 0%; opacity: 0; }
+  12% { opacity: 1; }
+  88% { opacity: 1; }
+  100% { offset-distance: 100%; opacity: 0; }
+}
+.motion-art .motion-sat-slow { animation-name: orbit; }
+@keyframes orbit { to { offset-distance: 100%; } }
+@keyframes ride-rev { from { offset-distance: 100%; } to { offset-distance: 0%; } }
+
+/* Commits light up in turn, left to right, then rest. */
+.motion-art .motion-commit { opacity: 0; animation: commit 3.6s ease-in-out infinite; }
+@keyframes commit {
+  0%, 100% { opacity: 0; }
+  12%, 30% { opacity: 1; }
+  45% { opacity: 0; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
 }

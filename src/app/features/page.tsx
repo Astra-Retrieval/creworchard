@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { AsteroidBullet } from "@/components/AsteroidBullet";
+import { FeatureMotion } from "@/components/FeatureMotion";
 import { StackArt } from "@/components/StackArt";
 import { FEATURES, MILESTONES, type Category } from "@/lib/site";
 
@@ -52,6 +53,12 @@ export default function FeaturesPage() {
               <p>{f.body}</p>
             </article>
           ))}
+        </div>
+      </section>
+
+      <section className="section-tight" aria-label="How Crew Orchard works">
+        <div className="container">
+          <FeatureMotion />
         </div>
       </section>
 
