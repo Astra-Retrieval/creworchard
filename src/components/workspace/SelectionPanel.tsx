@@ -3,7 +3,9 @@
 import { useState, useTransition } from "react";
 import type { Abilities, DocSummary, IntegrationNode, Person, Pin, SubsystemNode, WorkspaceApi } from "@/lib/workspace-types";
 import { BomTable } from "./BomTable";
-import { DocumentManager } from "./DocumentManager";
+import Link from "next/link";
+import { visibleInSubsystem } from "@/lib/doc-content";
+import { DocumentList } from "./DocumentList";
 import { CloseButton, Modal } from "./Modal";
 import { ContactList, personName } from "./people";
 
@@ -18,26 +20,30 @@ export function SelectionPanel({
   subsystem,
   integration,
   subsystems,
+  integrations,
   people,
   documents,
   pins,
   abilities,
   api,
+  documentsHref,
   onClose,
 }: {
   subsystem: SubsystemNode | null;
   integration: IntegrationNode | null;
   subsystems: SubsystemNode[];
+  integrations: IntegrationNode[];
   people: Person[];
   documents: DocSummary[];
   pins: Pin[];
   abilities: Abilities;
   api: WorkspaceApi;
+  documentsHref: string;
   onClose: () => void;
 }) {
   const [showPeople, setShowPeople] = useState(false);
-  /** Which dialog is open: the document manager (optionally on one document), or the BoM. */
-  const [dialog, setDialog] = useState<{ kind: "documents"; openId: string | null } | { kind: "bom" } | null>(null);
+  /** Which dialog is open: this drive's documents, or the BoM. */
+  const [dialog, setDialog] = useState<"documents" | "bom" | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [pending, start] = useTransition();
   const run = (action: () => Promise<{ ok: true } | { ok: false; message: string }>) => {
@@ -49,8 +55,14 @@ export function SelectionPanel({
   };
 
   const name = subsystem?.name ?? integration?.name ?? "";
-  const scope = subsystem ? { subsystemId: subsystem.id } : { integrationId: integration!.id };
-  const ownDocuments = documents.filter((d) => (subsystem ? d.subsystem_id === subsystem.id : d.integration_id === integration!.id));
+  // A sub-system's drive also shows documents saved in the integrations it's part of.
+  const ownDocuments = documents.filter((d) =>
+    subsystem ? visibleInSubsystem(d, subsystem.id, integrations) : d.integration_id === integration!.id,
+  );
+  const drives = [
+    ...subsystems.map((s) => ({ kind: "subsystem" as const, id: s.id, name: s.name })),
+    ...integrations.map((i) => ({ kind: "integration" as const, id: i.id, name: i.name })),
+  ];
   const memberIds = subsystem?.member_ids ?? integration?.member_ids ?? [];
   const members = people.filter((p) => memberIds.includes(p.user_id));
 
@@ -123,22 +135,22 @@ export function SelectionPanel({
           </div>
         )}
 
-        <button type="button" className="ws-panel-item" onClick={() => setDialog({ kind: "documents", openId: null })}>
+        <button type="button" className="ws-panel-item" onClick={() => setDialog("documents")}>
           <span>Documents</span>
           <span className="ws-panel-count">{ownDocuments.length}</span>
         </button>
 
         {subsystem && (
-          <button type="button" className="ws-panel-item" onClick={() => setDialog({ kind: "bom" })}>
+          <button type="button" className="ws-panel-item" onClick={() => setDialog("bom")}>
             <span>Bill of materials</span>
           </button>
         )}
 
         {pinned.map((d) => (
           <div key={d.id} className="ws-panel-pinned">
-            <button type="button" className="ws-panel-item" onClick={() => setDialog({ kind: "documents", openId: d.id })}>
+            <Link href={`${documentsHref}/${d.id}`} className="ws-panel-item">
               <span>{d.title}</span>
-            </button>
+            </Link>
             {abilities.editContent && (
               <button
                 type="button"
@@ -174,21 +186,22 @@ export function SelectionPanel({
         {error && <div className="notice notice-error" role="alert">{error}</div>}
       </div>
 
-      <Modal open={dialog?.kind === "documents"} onClose={() => setDialog(null)} eyebrow={`${name} · Documents`} title="Document manager" wide>
-        {dialog?.kind === "documents" && (
-          <DocumentManager
-            // Pinned documents can come from any drive, so offer the pinned one alongside this drive's.
-            documents={dialog.openId && !ownDocuments.some((d) => d.id === dialog.openId) ? [...documents.filter((d) => d.id === dialog.openId), ...ownDocuments] : ownDocuments}
-            scope={scope}
+      <Modal open={dialog === "documents"} onClose={() => setDialog(null)} eyebrow={`${name} · Documents`} title="Documents" wide>
+        {dialog === "documents" && (
+          <DocumentList
+            documents={ownDocuments}
+            drives={drives}
+            fixedDrive={drives.find((d) => d.id === (subsystem?.id ?? integration!.id)) ?? null}
+            documentsHref={documentsHref}
             api={api}
             canEdit={abilities.editContent}
-            initialId={dialog.openId}
+            empty={subsystem ? "No documents yet. Documents saved in this sub-system, or in an integration it's part of, appear here." : "No documents yet."}
           />
         )}
       </Modal>
 
-      <Modal open={dialog?.kind === "bom"} onClose={() => setDialog(null)} eyebrow={`${name} · Sub-system`} title="Bill of materials" wide>
-        {dialog?.kind === "bom" && subsystem && <BomTable subsystemId={subsystem.id} api={api} canEdit={abilities.editContent} />}
+      <Modal open={dialog === "bom"} onClose={() => setDialog(null)} eyebrow={`${name} · Sub-system`} title="Bill of materials" wide>
+        {dialog === "bom" && subsystem && <BomTable subsystemId={subsystem.id} api={api} canEdit={abilities.editContent} />}
       </Modal>
     </aside>
   );

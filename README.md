@@ -131,9 +131,18 @@ Whoever creates a project leads it. The organization's owner and admins act as a
 - Tabs down the left (the list is `PROJECT_SECTIONS`): Canvas, Team, Documents, Bill of materials, Requirements, and Constraints. The last two are empty for now.
 - **Canvas**: drag anywhere (or use the arrow keys) to move around. Sub-systems are boxes in a random brand color with a name and a short note. An integration connects two or more sub-systems: a smaller grey box joined to each by a grey line. The toggle at the top left switches lines between square (right angles only) and curved, and is remembered per device.
 - **Selecting**: pressing a sub-system brightens it and turns its lines and integration boxes blue. Pressing an integration turns it and its lines blue and brightens its sub-systems. Either opens a panel on the right: people and their contact details (for an integration, grouped by sub-system), documents, and for a sub-system its bill of materials and any documents pinned to its sidebar.
-- **Documents**: each project has a project-wide drive, and each sub-system and integration has its own. Documents are plain text for now and are edited in place.
+- **Documents**: see "Word processor and version history" below.
 - **Bills of materials**: each sub-system has a BoM; the Bill of materials tab adds them up into the project BoM.
 - The **New** button (top right and bottom left) is shown to leads and systems engineers. The bottom-right row has user settings, feature requests, questions, and the organization dashboard. Feature requests and questions are saved to `contact_messages` and show up under Messages on `/admin`.
+
+**Word processor and version history** (`src/components/workspace/RichEditor.tsx`, `DocumentEditor.tsx`, `src/lib/doc-content.ts`)
+
+- Documents open in a built-in word processor (built on [Tiptap](https://tiptap.dev)): paragraph styles, fonts, sizes, bold, italic, underline, strikethrough, subscript, superscript, text color, highlight, alignment, line spacing, bulleted, numbered, and check lists, quotes, code, links, images by web address, tables, undo and redo, word count, and print.
+- **Where a document is saved**: the project drive, one sub-system, or one integration. It is one document, shown everywhere above where it lives: a document saved in an integration also appears in each sub-system that integration connects, and everything appears in the project drive (the Documents tab). "Saved in" on the document moves it.
+- **Versions**: saving works like a commit. Each save is a new numbered version with an optional note, the author, and the time. **History** lists them. **What changed** compares a version with the one before it, **Compare to now** compares it with the current document, and unsaved edits can be compared with the last save. **Restore** saves an old version again as the newest one, so nothing is ever deleted and a restore can be undone.
+- If two people edit the same document, the second to save is told someone else saved first, rather than silently overwriting them.
+- Comparison is on the text. Formatting-only changes are not listed.
+- Content is stored as structured data (`documents.content`, `document_versions.content`), not HTML.
 
 **Security**: these tables are server-only (RLS on, no policies). Every page and server action goes through the guards in `src/lib/orgs.ts`, which answer "page not found" to anyone who isn't allowed to see the organization or project. The hierarchy is also enforced by foreign keys: a project member must be in the organization, and a sub-system or integration member must be on the project, so unassigning a seat removes that person everywhere below.
 
@@ -145,4 +154,4 @@ Apply the migrations in `supabase/migrations/` in order before deploying.
 - `profiles`: one row per auth user, created by a trigger. Holds role (`member` or `admin`), seats, a sequential member number, and Stripe IDs and status mirrored by the webhook. Members can read only their own row; all writes go through the server.
 - `organizations`, `organization_members` (role and granted permissions), `projects`, and `project_members` (project role).
 - `subsystems` (note, color, canvas position), `subsystem_members`, `integrations`, `integration_subsystems`, and `integration_members`.
-- `documents` (project, sub-system, or integration drive), `subsystem_pins`, and `bom_items`. All server-only.
+- `documents` (project, sub-system, or integration drive), `document_versions` (every saved version), `subsystem_pins`, and `bom_items`. All server-only.
