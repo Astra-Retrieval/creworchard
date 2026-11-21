@@ -4,6 +4,7 @@
  */
 import type { LineStyle } from "./canvas-layout.ts";
 import type { DocContent } from "./doc-content.ts";
+import type { SheetContent } from "./sheet-content.ts";
 import type { ProjectRole, SubsystemColor } from "./project-rules.ts";
 
 export type { LineStyle };
@@ -36,9 +37,15 @@ export interface IntegrationNode {
   member_ids: string[];
 }
 
+/** A written document, or a spreadsheet. Both live in the same drives and keep versions the same way. */
+export type DocKind = "doc" | "sheet";
+/** A document's content: word processor content for a "doc", a list of sheets for a "sheet". */
+export type AnyContent = DocContent | SheetContent;
+
 /** A document without its content, for lists. */
 export interface DocSummary {
   id: string;
+  kind: DocKind;
   title: string;
   subsystem_id: string | null;
   integration_id: string | null;
@@ -47,10 +54,19 @@ export interface DocSummary {
   head_version: number;
 }
 export interface DocFull extends DocSummary {
-  /** Word processor content. null for a document that has never been saved in it. */
-  content: DocContent | null;
+  /** null for a document that has never been saved. */
+  content: AnyContent | null;
   /** The same document as plain text. */
   body: string;
+}
+
+/** Someone's autosaved, not-yet-saved work on a document. */
+export interface Draft {
+  title: string;
+  content: AnyContent;
+  /** The saved version the draft was started from. */
+  base_version: number;
+  updated_at: string;
 }
 
 /** One saved version of a document, without its content. */
@@ -98,17 +114,21 @@ export interface WorkspaceApi {
   createSubsystem(input: { name: string; note: string; memberIds: string[] }): Promise<Result>;
   createIntegration(input: { name: string; subsystemIds: string[]; memberIds: string[] }): Promise<Result>;
   setSubsystemMember(input: { subsystemId: string; userId: string; assigned: boolean }): Promise<Result>;
-  createDocument(input: { title: string } & DocScope): Promise<Result<{ id: string }>>;
+  createDocument(input: { title: string; kind: DocKind } & DocScope): Promise<Result<{ id: string }>>;
   getDocument(id: string): Promise<Result<{ document: DocFull }>>;
   /**
    * Saves a new version. `baseVersion` is the version the editor started
    * from; if someone else has saved since, the save is refused.
    */
-  saveDocument(input: { id: string; title: string; content: DocContent; message: string; baseVersion: number }): Promise<Result<{ version: number; updated_at: string }>>;
+  saveDocument(input: { id: string; title: string; content: AnyContent; message: string; baseVersion: number }): Promise<Result<{ version: number; updated_at: string }>>;
   listVersions(id: string): Promise<Result<{ versions: VersionMeta[] }>>;
-  getVersion(input: { id: string; version: number }): Promise<Result<{ title: string; content: DocContent }>>;
+  getVersion(input: { id: string; version: number }): Promise<Result<{ title: string; content: AnyContent }>>;
   /** Saves an old version's content again as the newest version. History is kept. */
-  restoreVersion(input: { id: string; version: number; baseVersion: number }): Promise<Result<{ version: number; updated_at: string; title: string; content: DocContent }>>;
+  restoreVersion(input: { id: string; version: number; baseVersion: number }): Promise<Result<{ version: number; updated_at: string; title: string; content: AnyContent }>>;
+  /** Autosave: keeps the signed-in person's unsaved work without making a version. */
+  saveDraft(input: { id: string; title: string; content: AnyContent; baseVersion: number }): Promise<Result>;
+  /** Throws away the signed-in person's unsaved work on a document. */
+  discardDraft(id: string): Promise<Result>;
   /** Moves a document to the project drive, or to a sub-system's or integration's. */
   moveDocument(input: { id: string } & DocScope): Promise<Result>;
   setPin(input: { subsystemId: string; documentId: string; pinned: boolean }): Promise<Result>;
